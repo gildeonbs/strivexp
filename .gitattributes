@@ -1,0 +1,40 @@
+# Auto detect text files and ensure LF line endings
+* text=auto eol=lf
+
+# Treat all Java files as text with LF line endings
+*.java text eol=lf
+
+# Treat all Dart files as text with LF line endings
+*.dart text eol=lf
+
+# Normalize config files
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.properties text eol=lf
+*.gradle text eol=lf
+
+# Mark binaries so Git doesn't try to diff them
+*.jar binary
+*.class binary
+*.so binary
+*.dll binary
+*.exe binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Documentation
+*.md text eol=lf
+LICENSE text eol=lf
+
+# GitHub language statistics overrides
+# (Helps GitHub highlight correct main languages)
+*.dart linguist-detectable=true
+*.java linguist-detectable=true
+*.xml linguist-generated
+*.yml linguist-generated
+*.yaml linguist-generated
