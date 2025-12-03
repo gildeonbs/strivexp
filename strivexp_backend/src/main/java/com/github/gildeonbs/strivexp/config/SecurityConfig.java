@@ -1,4 +1,4 @@
-package com.strivexp.backend.config;
+package com.github.gildeonbs.strivexp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
