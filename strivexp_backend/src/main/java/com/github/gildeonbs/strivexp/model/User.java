@@ -1,25 +1,23 @@
-package com.strivexp.backend.model;
+package com.github.gildeonbs.strivexp.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.OffsetDateTime;
 import java.time.LocalDate;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, unique = true)
@@ -42,19 +40,21 @@ public class User {
 
     private String avatar;
 
+    @Builder.Default
     private String timezone = "UTC";
 
-    private String locale = "us_EN";
+    @Builder.Default
+    private String locale = "en_US";
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 }
-
