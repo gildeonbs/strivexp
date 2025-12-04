@@ -1,7 +1,7 @@
 package com.github.gildeonbs.strivexp.repository;
 
 import com.github.gildeonbs.strivexp.model.*;
-import com.github.gildeonbs.strivexp.model.enums.Enums.ChallengeRecurrence;
+import com.github.gildeonbs.strivexp.model.enums.ChallengeRecurrence;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
