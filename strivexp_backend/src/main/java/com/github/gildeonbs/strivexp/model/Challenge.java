@@ -1,6 +1,6 @@
 package com.github.gildeonbs.strivexp.model;
 
-import com.github.gildeonbs.strivexp.model.enums.Enums.ChallengeRecurrence;
+import com.github.gildeonbs.strivexp.model.enums.ChallengeRecurrence;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
