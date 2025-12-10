@@ -37,7 +37,6 @@ public class UserChallenge {
     @Column(name = "due_date")
     private LocalDate dueDate;
 
-    @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "challenge_status", nullable = false)
     @Builder.Default
     private ChallengeStatus status = ChallengeStatus.ASSIGNED;

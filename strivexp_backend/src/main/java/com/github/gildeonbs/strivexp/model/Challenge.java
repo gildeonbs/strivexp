@@ -45,7 +45,6 @@ public class Challenge {
     @Builder.Default
     private Boolean isActive = true;
 
-    @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "challenge_recurrence") // Hits the Postgres ENUM type
     private ChallengeRecurrence recurrence;
 

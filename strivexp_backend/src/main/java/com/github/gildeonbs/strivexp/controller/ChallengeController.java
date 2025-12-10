@@ -25,7 +25,8 @@ public class ChallengeController {
         // UUID userId = UUID.fromString(authentication.getName()); 
         
         // MOCK ID for demonstration (Replace with actual Auth extraction)
-        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001"); 
+        //UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001"); 
+        UUID userId = UUID.fromString("374a2827-aecd-497a-aefe-3cdfcf448944"); 
 
         return ResponseEntity.ok(challengeService.getOrAssignDailyChallenges(userId));
     }
