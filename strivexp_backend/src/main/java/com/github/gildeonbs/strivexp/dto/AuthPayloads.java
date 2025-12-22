@@ -18,7 +18,11 @@ public class AuthPayloads {
     ) {}
 
     public record AuthenticationResponse(
-        String token,
-        String refreshToken // Placeholder for future
+        String accessToken,
+        String refreshToken 
+    ) {}
+
+    public record RefreshTokenRequest(
+        String refreshToken
     ) {}
 }
