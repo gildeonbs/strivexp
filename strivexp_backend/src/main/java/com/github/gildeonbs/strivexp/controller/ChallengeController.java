@@ -20,15 +20,10 @@ public class ChallengeController {
     // Endpoint: GET /api/challenges/daily
     @GetMapping("/daily")
     public ResponseEntity<List<UserChallengeDto>> getDailyChallenges(Authentication authentication) {
-        // In a real app with Security, extract UUID from 'authentication' principal
-        // For now, we mock it or pass it via header for testing if auth isn't fully ready
-        // UUID userId = UUID.fromString(authentication.getName()); 
+        // Now extracting the real email from the SecurityContext
+        String userEmail = authentication.getName(); 
         
-        // MOCK ID for demonstration (Replace with actual Auth extraction)
-        //UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001"); 
-        UUID userId = UUID.fromString("374a2827-aecd-497a-aefe-3cdfcf448944"); 
-
-        return ResponseEntity.ok(challengeService.getOrAssignDailyChallenges(userId));
+        return ResponseEntity.ok(challengeService.getOrAssignDailyChallenges(userEmail));
     }
 
     // Endpoint: POST /api/challenges/{id}/complete
