@@ -2,6 +2,8 @@ package com.github.gildeonbs.strivexp.service;
 
 import com.github.gildeonbs.strivexp.config.security.JwtService;
 import com.github.gildeonbs.strivexp.dto.AuthPayloads.*;
+import com.github.gildeonbs.strivexp.exception.CustomExceptions.BadRequestException;
+import com.github.gildeonbs.strivexp.exception.CustomExceptions.ResourceNotFoundException;
 import com.github.gildeonbs.strivexp.model.RefreshToken;
 import com.github.gildeonbs.strivexp.model.User;
 import com.github.gildeonbs.strivexp.model.UserSettings;
@@ -39,6 +41,8 @@ public class AuthService {
 
     @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
+        // DataIntegrityViolationException (duplicate email) is handled by GlobalExceptionHandler
+
         var user = User.builder()
                 .displayName(request.firstName() + " " + request.lastName())
                 .lastName(request.lastName())
@@ -69,6 +73,7 @@ public class AuthService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        // Throws BadCredentialsException if fails (Handled by GlobalExceptionHandler)
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -77,7 +82,7 @@ public class AuthService {
         );
         
         var user = userRepository.findByEmail(request.email())
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.email()));
                 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         
@@ -94,11 +99,11 @@ public class AuthService {
                     // 1. Verify Expiration
                     if (token.getExpiryDate().isBefore(Instant.now())) {
                         refreshTokenRepository.delete(token); // Clean up
-                        throw new RuntimeException("Refresh token expired. Please login again.");
+                        throw new BadRequestException("Refresh token expired. Please login again.");
                     }
                     // 2. Verify Revocation
                     if (token.isRevoked()) {
-                        throw new RuntimeException("Refresh token revoked.");
+                        throw new BadRequestException("Refresh token revoked.");
                     }
                     return token;
                 })
@@ -113,7 +118,7 @@ public class AuthService {
                     
                     return new AuthenticationResponse(accessToken, request.refreshToken());
                 })
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found"));
     }
 
     private String createRefreshToken(User user) {

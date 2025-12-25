@@ -1,6 +1,7 @@
 package com.github.gildeonbs.strivexp.service;
 
 import com.github.gildeonbs.strivexp.dto.UserDtos.*;
+import com.github.gildeonbs.strivexp.exception.CustomExceptions.ResourceNotFoundException;
 import com.github.gildeonbs.strivexp.model.User;
 import com.github.gildeonbs.strivexp.model.UserSettings;
 import com.github.gildeonbs.strivexp.repository.UserRepository;
@@ -8,8 +9,6 @@ import com.github.gildeonbs.strivexp.repository.UserSettingsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +23,11 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
+                // Use Custom Exception here for 404
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+
         UserSettings settings = userSettingsRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Settings not found for user"));
+                .orElseThrow(() -> new ResourceNotFoundException("Settings not found for user"));
 
         return mapToProfileResponse(user, settings);
     }
@@ -38,7 +38,7 @@ public class UserService {
     @Transactional
     public UserProfileResponse updateProfile(String email, UpdateProfileRequest request) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (request.displayName() != null) user.setDisplayName(request.displayName());
         if (request.avatar() != null) user.setAvatar(request.avatar());
@@ -49,7 +49,7 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         UserSettings settings = userSettingsRepository.findById(user.getId()).orElseThrow();
-        
+
         return mapToProfileResponse(savedUser, settings);
     }
 
@@ -59,10 +59,10 @@ public class UserService {
     @Transactional
     public UserProfileResponse updateSettings(String email, UpdateSettingsRequest request) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         UserSettings settings = userSettingsRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Settings not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Settings not found"));
 
         if (request.dailyNotificationTime() != null) settings.setDailyNotificationTime(request.dailyNotificationTime());
         if (request.locale() != null) settings.setLocale(request.locale());
@@ -73,30 +73,30 @@ public class UserService {
         if (request.soundEffectsEnabled() != null) settings.setSoundEffectsEnabled(request.soundEffectsEnabled());
 
         UserSettings savedSettings = userSettingsRepository.save(settings);
-        
+
         return mapToProfileResponse(user, savedSettings);
     }
 
     private UserProfileResponse mapToProfileResponse(User user, UserSettings settings) {
         UserSettingsDto settingsDto = new UserSettingsDto(
-            settings.getDailyNotificationTime(),
-            settings.getLocale(),
-            settings.getReceiveMarketing(),
-            settings.getDailyChallengeLimit(),
-            settings.getVibrationEnabled(),
-            settings.getMotivationalMessagesEnabled(),
-            settings.getSoundEffectsEnabled()
+                settings.getDailyNotificationTime(),
+                settings.getLocale(),
+                settings.getReceiveMarketing(),
+                settings.getDailyChallengeLimit(),
+                settings.getVibrationEnabled(),
+                settings.getMotivationalMessagesEnabled(),
+                settings.getSoundEffectsEnabled()
         );
 
         return new UserProfileResponse(
-            user.getId(),
-            user.getEmail(),
-            user.getDisplayName(),
-            user.getUsername(),
-            user.getAvatar(),
-            user.getBirthdayDate(),
-            user.getLocale(),
-            settingsDto
+                user.getId(),
+                user.getEmail(),
+                user.getDisplayName(),
+                user.getUsername(),
+                user.getAvatar(),
+                user.getBirthdayDate(),
+                user.getLocale(),
+                settingsDto
         );
     }
 }
