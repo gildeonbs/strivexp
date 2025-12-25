@@ -1,6 +1,8 @@
 package com.github.gildeonbs.strivexp.service;
 
 import com.github.gildeonbs.strivexp.dto.*;
+import com.github.gildeonbs.strivexp.exception.CustomExceptions.BadRequestException;
+import com.github.gildeonbs.strivexp.exception.CustomExceptions.ResourceNotFoundException;
 import com.github.gildeonbs.strivexp.model.*;
 import com.github.gildeonbs.strivexp.model.enums.*;
 import com.github.gildeonbs.strivexp.repository.*;
@@ -31,7 +33,7 @@ public class ChallengeService {
     public List<UserChallengeDto> getOrAssignDailyChallenges(String userEmail) {
         LocalDate today = LocalDate.now();
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
 
         UUID userId = user.getId();
         List<UserChallenge> existing = userChallengeRepository.findByUserIdAndAssignedDate(userId, today);
@@ -61,10 +63,10 @@ public class ChallengeService {
     @Transactional
     public UserChallengeDto completeChallenge(UUID userChallengeId, CompleteChallengeRequest request) {
         UserChallenge assignment = userChallengeRepository.findById(userChallengeId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("UserChallenge not found with id: " + userChallengeId));
 
         if (assignment.getStatus() == ChallengeStatus.COMPLETED) {
-            throw new IllegalStateException("Challenge already completed");
+            throw new BadRequestException("Challenge is already completed");
         }
 
         assignment.setStatus(ChallengeStatus.COMPLETED);

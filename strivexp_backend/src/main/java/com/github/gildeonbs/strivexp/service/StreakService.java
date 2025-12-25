@@ -1,5 +1,6 @@
 package com.github.gildeonbs.strivexp.service;
 
+import com.github.gildeonbs.strivexp.exception.CustomExceptions.ResourceNotFoundException;
 import com.github.gildeonbs.strivexp.model.User;
 import com.github.gildeonbs.strivexp.model.UserStreak;
 import com.github.gildeonbs.strivexp.repository.UserRepository;
@@ -63,7 +64,8 @@ public class StreakService {
     }
 
     private UserStreak initializeStreak(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new  ResourceNotFoundException("User not found with id: " + userId));
         return UserStreak.builder()
                 .user(user)
                 .currentStreak(0)

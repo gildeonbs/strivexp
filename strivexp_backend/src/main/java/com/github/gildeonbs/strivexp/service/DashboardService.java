@@ -3,6 +3,7 @@ package com.github.gildeonbs.strivexp.service;
 import com.github.gildeonbs.strivexp.dto.DashboardDtos.HomeDashboardResponse;
 import com.github.gildeonbs.strivexp.dto.UserChallengeDto;
 import com.github.gildeonbs.strivexp.dto.GamificationDtos.UserProgressDto;
+import com.github.gildeonbs.strivexp.exception.CustomExceptions.ResourceNotFoundException;
 import com.github.gildeonbs.strivexp.model.User;
 import com.github.gildeonbs.strivexp.model.UserSettings;
 import com.github.gildeonbs.strivexp.repository.UserRepository;
@@ -28,7 +29,7 @@ public class DashboardService {
     @Transactional
     public HomeDashboardResponse getHomeDashboard(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
 
         // 1. Get Progress (XP + Level + Streak)
         UserProgressDto progress = xpService.getUserProgress(user.getId());
