@@ -23,28 +23,25 @@ public class ChallengeService {
     private final ChallengeRepository challengeRepository;
     private final UserChallengeRepository userChallengeRepository;
     private final UserRepository userRepository;
+    
+    // Inject XP Service
+    private final XpService xpService;
 
-    /**
-     * Assigns daily challenges to a user if they haven't been assigned yet today.
-     */
     @Transactional
-    public List<UserChallengeDto> getOrAssignDailyChallenges(UUID userId) {
+    public List<UserChallengeDto> getOrAssignDailyChallenges(String userEmail) {
         LocalDate today = LocalDate.now();
-        
-        // 1. Check if user exists
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 2. Check if already assigned
+        UUID userId = user.getId();
         List<UserChallenge> existing = userChallengeRepository.findByUserIdAndAssignedDate(userId, today);
+        
         if (!existing.isEmpty()) {
             return existing.stream().map(this::mapToDto).collect(Collectors.toList());
         }
 
-        // 3. Fetch active daily challenges (In real app, add logic for user preferences/difficulty)
         List<Challenge> dailyChallenges = challengeRepository.findByRecurrenceAndIsActiveTrue(ChallengeRecurrence.DAILY);
 
-        // 4. Assign them
         List<UserChallenge> newAssignments = dailyChallenges.stream()
                 .map(challenge -> UserChallenge.builder()
                         .user(user)
@@ -61,9 +58,6 @@ public class ChallengeService {
         return saved.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
-    /**
-     * Mark a challenge as COMPLETED
-     */
     @Transactional
     public UserChallengeDto completeChallenge(UUID userChallengeId, CompleteChallengeRequest request) {
         UserChallenge assignment = userChallengeRepository.findById(userChallengeId)
@@ -77,12 +71,19 @@ public class ChallengeService {
         assignment.setCompletedAt(Instant.now());
         assignment.setNote(request.note());
         
-        // Award XP (Simple logic, can be expanded to include streaks/bonuses)
-        assignment.setXpAwarded(assignment.getChallenge().getXpReward());
+        int xpToAward = assignment.getChallenge().getXpReward();
+        assignment.setXpAwarded(xpToAward);
 
         UserChallenge saved = userChallengeRepository.save(assignment);
         
-        // TODO: Fire XP Event asynchronously here to update User total XP
+        // INTEGRATION: Fire XP Event
+        xpService.awardXp(
+            assignment.getUser(), 
+            xpToAward, 
+            XpEventType.CHALLENGE_COMPLETION, 
+            assignment.getId(), 
+            "Completed challenge: " + assignment.getChallenge().getTitle()
+        );
 
         return mapToDto(saved);
     }
