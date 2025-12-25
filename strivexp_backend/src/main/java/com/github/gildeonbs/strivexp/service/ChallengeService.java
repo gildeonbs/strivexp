@@ -24,8 +24,8 @@ public class ChallengeService {
     private final UserChallengeRepository userChallengeRepository;
     private final UserRepository userRepository;
     
-    // Inject XP Service
     private final XpService xpService;
+    private final StreakService streakService; // Added StreakService
 
     @Transactional
     public List<UserChallengeDto> getOrAssignDailyChallenges(String userEmail) {
@@ -76,7 +76,7 @@ public class ChallengeService {
 
         UserChallenge saved = userChallengeRepository.save(assignment);
         
-        // INTEGRATION: Fire XP Event
+        // 1. Award XP
         xpService.awardXp(
             assignment.getUser(), 
             xpToAward, 
@@ -84,6 +84,9 @@ public class ChallengeService {
             assignment.getId(), 
             "Completed challenge: " + assignment.getChallenge().getTitle()
         );
+
+        // 2. Update Streak
+        streakService.updateStreak(assignment.getUser().getId());
 
         return mapToDto(saved);
     }

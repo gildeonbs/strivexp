@@ -2,6 +2,7 @@ package com.github.gildeonbs.strivexp.service;
 
 import com.github.gildeonbs.strivexp.dto.GamificationDtos.*;
 import com.github.gildeonbs.strivexp.model.User;
+import com.github.gildeonbs.strivexp.model.UserStreak;
 import com.github.gildeonbs.strivexp.model.XpEvent;
 import com.github.gildeonbs.strivexp.model.enums.XpEventType;
 import com.github.gildeonbs.strivexp.repository.XpEventRepository;
@@ -18,17 +19,19 @@ import java.util.UUID;
 public class XpService {
 
     private final XpEventRepository xpEventRepository;
+    private final StreakService streakService; // Injected to aggregate data
 
     // CONSTANTS for Leveling Logic
-    // Level 1 = 0 XP, Level 2 = 100 XP, etc.
     private static final int BASE_XP_PER_LEVEL = 100;
 
     /**
-     * Calculates full progress for a user.
+     * Calculates full progress for a user (Level + XP + Streak).
      */
     public UserProgressDto getUserProgress(UUID userId) {
         long totalXp = xpEventRepository.getTotalXpByUserId(userId).orElse(0L);
-        return calculateProgress(totalXp);
+        UserStreak streak = streakService.getStreak(userId); // Fetch streak info
+
+        return calculateProgress(totalXp, streak);
     }
 
     /**
@@ -61,7 +64,7 @@ public class XpService {
         return (int) (totalXp / BASE_XP_PER_LEVEL) + 1;
     }
 
-    private UserProgressDto calculateProgress(long totalXp) {
+    private UserProgressDto calculateProgress(long totalXp, UserStreak streak) {
         int currentLevel = calculateLevel(totalXp);
         
         long xpForNextLevelTotal = (long) currentLevel * BASE_XP_PER_LEVEL;
@@ -77,7 +80,9 @@ public class XpService {
             totalXp,
             xpForNextLevelTotal, 
             xpInCurrentLevel,    
-            percentage
+            percentage,
+            streak.getCurrentStreak(), // Mapped from Streak Entity
+            streak.getLongestStreak()
         );
     }
 }
