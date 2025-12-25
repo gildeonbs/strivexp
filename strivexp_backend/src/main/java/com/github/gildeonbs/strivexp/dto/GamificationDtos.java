@@ -7,7 +7,11 @@ public class GamificationDtos {
         Long currentXp,
         Long xpForNextLevel,
         Long xpInCurrentLevel, // XP earned towards the next level
-        Double progressPercentage // 0.0 to 1.0 for progress bar
+        Double progressPercentage, // 0.0 to 1.0 for progress bar
+
+        // Added Streak Info
+        Integer currentStreak,
+        Integer longestStreak
     ) {}
     
     public record XpAwardedEvent(
