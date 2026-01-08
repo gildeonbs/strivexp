@@ -22,6 +22,9 @@ public class StreakService {
     private final UserStreakRepository userStreakRepository;
     private final UserRepository userRepository;
 
+    // INTEGRATION: Badge Service
+    private final BadgeService badgeService;
+
     /**
      * Updates the user's streak based on activity today.
      * Uses REQUIRES_NEW to ensure streak updates happen even if the parent transaction has issues,
@@ -56,6 +59,9 @@ public class StreakService {
         streak.setLastCompletedDate(today);
         userStreakRepository.save(streak);
         log.info("Updated streak for user {}: Current={}, Longest={}", userId, streak.getCurrentStreak(), streak.getLongestStreak());
+
+        // TRIGGER BADGE CHECK
+        badgeService.checkStreakBadges(streak.getUser(), streak.getCurrentStreak());
     }
 
     public UserStreak getStreak(UUID userId) {

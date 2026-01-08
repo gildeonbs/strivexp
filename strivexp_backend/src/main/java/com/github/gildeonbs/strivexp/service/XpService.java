@@ -21,6 +21,9 @@ public class XpService {
     private final XpEventRepository xpEventRepository;
     private final StreakService streakService; // Injected to aggregate data
 
+    // INTEGRATION: Badge Service
+    private final BadgeService badgeService;
+
     // CONSTANTS for Leveling Logic
     private static final int BASE_XP_PER_LEVEL = 100;
 
@@ -56,6 +59,11 @@ public class XpService {
 
         int oldLevel = calculateLevel(totalXpBefore);
         int newLevel = calculateLevel(totalXpAfter);
+
+        // TRIGGER BADGE CHECK
+        if (newLevel > oldLevel) {
+            badgeService.checkLevelBadges(user, newLevel);
+        }
 
         return new XpAwardedEvent(amount, type.name(), newLevel, newLevel > oldLevel);
     }
