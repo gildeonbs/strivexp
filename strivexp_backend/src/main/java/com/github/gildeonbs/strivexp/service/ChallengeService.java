@@ -25,9 +25,12 @@ public class ChallengeService {
     private final ChallengeRepository challengeRepository;
     private final UserChallengeRepository userChallengeRepository;
     private final UserRepository userRepository;
-    
+
+    // Inject UserCategoryRepository for filtering
+    private final UserCategoryRepository userCategoryRepository;
+
     private final XpService xpService;
-    private final StreakService streakService; // Added StreakService
+    private final StreakService streakService;
 
     @Transactional
     public List<UserChallengeDto> getOrAssignDailyChallenges(String userEmail) {
@@ -37,12 +40,27 @@ public class ChallengeService {
 
         UUID userId = user.getId();
         List<UserChallenge> existing = userChallengeRepository.findByUserIdAndAssignedDate(userId, today);
-        
+
         if (!existing.isEmpty()) {
             return existing.stream().map(this::mapToDto).collect(Collectors.toList());
         }
 
-        List<Challenge> dailyChallenges = challengeRepository.findByRecurrenceAndIsActiveTrue(ChallengeRecurrence.DAILY);
+        // --- NEW LOGIC START ---
+        // 1. Get user's preferred categories
+        List<UUID> preferredCategoryIds = userCategoryRepository.findCategoryIdsByUserId(userId);
+
+        List<Challenge> dailyChallenges;
+        if (preferredCategoryIds.isEmpty()) {
+            // Fallback: If no preference selected, show ALL active daily challenges
+            dailyChallenges = challengeRepository.findByRecurrenceAndIsActiveTrue(ChallengeRecurrence.DAILY);
+        } else {
+            // Filter: Only show challenges from selected categories
+            dailyChallenges = challengeRepository.findByRecurrenceAndIsActiveTrueAndCategoryIdIn(
+                    ChallengeRecurrence.DAILY,
+                    preferredCategoryIds
+            );
+        }
+        // --- NEW LOGIC END ---
 
         List<UserChallenge> newAssignments = dailyChallenges.stream()
                 .map(challenge -> UserChallenge.builder()
@@ -63,7 +81,7 @@ public class ChallengeService {
     @Transactional
     public UserChallengeDto completeChallenge(UUID userChallengeId, CompleteChallengeRequest request) {
         UserChallenge assignment = userChallengeRepository.findById(userChallengeId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserChallenge not found with id: " + userChallengeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found with id: " + userChallengeId));
 
         if (assignment.getStatus() == ChallengeStatus.COMPLETED) {
             throw new BadRequestException("Challenge is already completed");
@@ -72,7 +90,7 @@ public class ChallengeService {
         assignment.setStatus(ChallengeStatus.COMPLETED);
         assignment.setCompletedAt(Instant.now());
         assignment.setNote(request.note());
-        
+
         int xpToAward = assignment.getChallenge().getXpReward();
         assignment.setXpAwarded(xpToAward);
 
@@ -80,11 +98,11 @@ public class ChallengeService {
         
         // 1. Award XP
         xpService.awardXp(
-            assignment.getUser(), 
-            xpToAward, 
-            XpEventType.CHALLENGE_COMPLETION, 
-            assignment.getId(), 
-            "Completed challenge: " + assignment.getChallenge().getTitle()
+                assignment.getUser(),
+                xpToAward,
+                XpEventType.CHALLENGE_COMPLETION,
+                assignment.getId(),
+                "Completed challenge: " + assignment.getChallenge().getTitle()
         );
 
         // 2. Update Streak
@@ -96,7 +114,7 @@ public class ChallengeService {
     private UserChallengeDto mapToDto(UserChallenge uc) {
         Challenge c = uc.getChallenge();
         ChallengeResponseDto cDto = new ChallengeResponseDto(
-                c.getId(), c.getTitle(), c.getDescription(), c.getXpReward(), 
+                c.getId(), c.getTitle(), c.getDescription(), c.getXpReward(),
                 c.getCategory().getName(), c.getDifficulty()
         );
         return new UserChallengeDto(uc.getId(), cDto, uc.getAssignedDate(), uc.getStatus(), uc.getXpAwarded());
