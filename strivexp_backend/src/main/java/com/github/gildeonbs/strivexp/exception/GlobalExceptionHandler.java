@@ -42,6 +42,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, message, request);
     }
 
+    // 3.1 Username uniqueness
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameAlreadyExists(UsernameAlreadyExistsException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
     // 4. Handle Logic Errors (400) - e.g., Challenge already completed
     @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class, BadRequestException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex, HttpServletRequest request) {
