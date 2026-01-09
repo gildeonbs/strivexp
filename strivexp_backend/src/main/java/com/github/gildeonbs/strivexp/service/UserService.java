@@ -1,12 +1,15 @@
 package com.github.gildeonbs.strivexp.service;
 
 import com.github.gildeonbs.strivexp.dto.UserDtos.*;
+//import com.github.gildeonbs.strivexp.exception.CustomExceptions.ResourceConflictException;
+import com.github.gildeonbs.strivexp.exception.CustomExceptions.UsernameAlreadyExistsException;
 import com.github.gildeonbs.strivexp.exception.CustomExceptions.ResourceNotFoundException;
 import com.github.gildeonbs.strivexp.model.User;
 import com.github.gildeonbs.strivexp.model.UserSettings;
 import com.github.gildeonbs.strivexp.repository.UserRepository;
 import com.github.gildeonbs.strivexp.repository.UserSettingsRepository;
 import lombok.RequiredArgsConstructor;
+//import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,17 +43,43 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (request.displayName() != null) user.setDisplayName(request.displayName());
-        if (request.avatar() != null) user.setAvatar(request.avatar());
-        if (request.username() != null) {
-            // TODO: Check for unique username constraint violation here
-            user.setUsername(request.username());
+        boolean profileUpdated = false;
+
+        if (request.displayName() != null &&
+                !request.displayName().equals(user.getDisplayName())) {
+            user.setDisplayName(request.displayName());
+            profileUpdated = true;
         }
 
-        User savedUser = userRepository.save(user);
-        UserSettings settings = userSettingsRepository.findById(user.getId()).orElseThrow();
+        if (request.avatar() != null &&
+                !request.avatar().equals(user.getAvatar())) {
+            user.setAvatar(request.avatar());
+            profileUpdated = true;
+        }
 
-        return mapToProfileResponse(savedUser, settings);
+        if (request.username() != null &&
+                !request.username().equals(user.getUsername())) {
+            if (userRepository.existsByUsername(request.username())) {
+                /*
+                throw new ResourceConflictException("Username already exists");
+                throw new DataIntegrityViolationException("Username already exists");
+                */
+                throw new UsernameAlreadyExistsException("Username already exists");
+            }
+            user.setUsername(request.username());
+            profileUpdated = true;
+        }
+
+        if (profileUpdated) {
+            userRepository.save(user);
+        }
+
+        //User savedUser = userRepository.save(user);
+        UserSettings settings = userSettingsRepository.findById(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Settings not found for user"));
+
+        //return mapToProfileResponse(savedUser, settings);
+        return mapToProfileResponse(user, settings);
     }
 
     /**

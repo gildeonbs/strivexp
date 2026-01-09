@@ -19,6 +19,13 @@ public class CustomExceptions {
         }
     }
 
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public static class UsernameAlreadyExistsException extends RuntimeException {
+        public UsernameAlreadyExistsException(String message) {
+            super(message);
+        }
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public static class BadRequestException extends RuntimeException {
         public BadRequestException(String message) {
