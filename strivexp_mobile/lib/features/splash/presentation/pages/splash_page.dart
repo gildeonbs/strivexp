@@ -16,12 +16,14 @@ class SplashPage extends ConsumerWidget {
         data: (destination) {
           if (destination == SplashDestination.home) {
             context.go(AppRoutes.home);
-          } else if (destination == SplashDestination.login) {
-            context.go(AppRoutes.login);
+          } else {
+            // Se não estiver logado, vai para a tela de Escolha (Welcome)
+            context.go(AppRoutes.welcome);
           }
         },
-        error: (_, __) => context.go(AppRoutes.login), // Falback seguro
-        loading: () {}, // Continua na tela de splash
+        // Em caso de erro, também enviamos para Welcome por segurança
+        error: (_, __) => context.go(AppRoutes.welcome),
+        loading: () {},
       );
     });
 
