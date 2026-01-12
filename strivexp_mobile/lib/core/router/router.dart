@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
 
 // Rotas como constantes para evitar erros de digitação
 class AppRoutes {
@@ -28,9 +29,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Login Page Placeholder')),
-        ),
+        builder: (context, state) => const LoginPage(),
       ),
       GoRoute(
         path: AppRoutes.signup,
