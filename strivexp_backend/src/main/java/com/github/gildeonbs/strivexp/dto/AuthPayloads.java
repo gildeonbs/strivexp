@@ -1,6 +1,7 @@
 package com.github.gildeonbs.strivexp.dto;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class AuthPayloads {
 
@@ -24,5 +25,21 @@ public class AuthPayloads {
 
     public record RefreshTokenRequest(
         String refreshToken
+    ) {}
+
+    // --- NEW DTOs for Password Reset ---
+
+    public record PasswordResetRequest(
+            String email
+    ) {}
+
+    public record PasswordResetConfirm(
+            String token, // The raw token string received in email
+            UUID tokenId, // The public ID from the link to find the DB record
+            String newPassword
+    ) {}
+
+    public record GenericResponse(
+            String message
     ) {}
 }
