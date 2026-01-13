@@ -1,9 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/router/router.dart';
 import '../viewmodels/birthday_viewmodel.dart';
 
@@ -15,84 +14,31 @@ class BirthdayPage extends ConsumerStatefulWidget {
 }
 
 class _BirthdayPageState extends ConsumerState<BirthdayPage> {
-  DateTime? _selectedDate;
+  // Controladores para os 3 campos
+  final _monthController = TextEditingController();
+  final _dayController = TextEditingController();
+  final _yearController = TextEditingController();
 
-  static const Color _textColor = Color.fromARGB(255, 112, 114, 113);
-  static const Color _fieldColor = Color.fromARGB(255, 231, 231, 231);
+  // Cor do botão azul [RGB 132, 186, 220]
   static const Color _buttonBlue = Color.fromARGB(255, 132, 186, 220);
-  static const Color _yellowStriveXP = Color.fromARGB(255, 244, 191, 59);
 
-  // Constraints
-  final DateTime _minDate = DateTime(1900, 1, 1);
-  final DateTime _maxDate = DateTime.now();
-
-  void _onNext() {
-    if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select your birthday'),
-          backgroundColor: _yellowStriveXP,
-        ),
-      );
-      return;
-    }
-
-    FocusScope.of(context).unfocus();
-    
-    final d = _selectedDate!.day;
-    final m = _selectedDate!.month;
-    final y = _selectedDate!.year;
-
-    ref.read(birthdayViewModelProvider.notifier).submitBirthday(d, m, y);
+  @override
+  void dispose() {
+    _monthController.dispose();
+    _dayController.dispose();
+    _yearController.dispose();
+    super.dispose();
   }
 
-  void _showDatePicker() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 300,
-          color: Colors.white,
-          child: Column(
-            children: [
-              Container(
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Done', style: TextStyle(color: _buttonBlue, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.date,
-                  initialDateTime: _selectedDate ?? DateTime(2000, 1, 1),
-                  minimumDate: _minDate,
-                  maximumDate: _maxDate,
-                  onDateTimeChanged: (DateTime newDate) {
-                    setState(() {
-                      _selectedDate = newDate;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  void _onNext() {
+    FocusScope.of(context).unfocus(); // Fecha teclado
+    
+    // Converte textos para int
+    final m = int.tryParse(_monthController.text);
+    final d = int.tryParse(_dayController.text);
+    final y = int.tryParse(_yearController.text);
+
+    ref.read(birthdayViewModelProvider.notifier).submitBirthday(d, m, y);
   }
 
   @override
@@ -147,45 +93,47 @@ class _BirthdayPageState extends ConsumerState<BirthdayPage> {
               const Text(
                 "What's your birthday?",
                 style: TextStyle(
-                  fontFamily: 'Nunito',
-                  color: _textColor,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
 
               const SizedBox(height: 32),
 
-              // 3. Date Selector (Line style)
-              GestureDetector(
-                onTap: _showDatePicker,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.black12,
-                        width: 1.5,
-                      ),
+              // 3. Date Fields (Row of 3 inputs)
+              Row(
+                children: [
+                  // Month
+                  Expanded(
+                    flex: 1,
+                    child: _buildDateInput(
+                      controller: _monthController,
+                      hint: 'Month',
+                      maxLength: 2,
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _selectedDate == null
-                            ? "Select your birthday"
-                            : DateFormat('MMMM d, yyyy').format(_selectedDate!),
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 18,
-                          color: _selectedDate == null ? Colors.grey : _textColor,
-                        ),
-                      ),
-                      const Icon(Icons.calendar_today, color: _buttonBlue, size: 20),
-                    ],
+                  const SizedBox(width: 12),
+                  // Day
+                  Expanded(
+                    flex: 1,
+                    child: _buildDateInput(
+                      controller: _dayController,
+                      hint: 'Day',
+                      maxLength: 2,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  // Year
+                  Expanded(
+                    flex: 2, // Ano um pouco maior
+                    child: _buildDateInput(
+                      controller: _yearController,
+                      hint: 'Year',
+                      maxLength: 4,
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 16),
@@ -194,8 +142,7 @@ class _BirthdayPageState extends ConsumerState<BirthdayPage> {
               const Text(
                 "This is just to confirm your age. Your information is kept private.",
                 style: TextStyle(
-                  fontFamily: 'Nunito',
-                  color: _textColor,
+                  color: Colors.grey, // Cinza escuro/médio
                   fontSize: 13,
                 ),
               ),
@@ -231,4 +178,31 @@ class _BirthdayPageState extends ConsumerState<BirthdayPage> {
       ),
     );
   }
+
+  Widget _buildDateInput({
+    required TextEditingController controller,
+    required String hint,
+    required int maxLength,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      maxLength: maxLength,
+      textAlign: TextAlign.center,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        counterText: "", // Esconde o contador de caracteres (ex: 0/2)
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.withOpacity(0.6)),
+        filled: true,
+        fillColor: Colors.grey[100], // Fundo leve
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+      ),
+    );
+  }
 }
+

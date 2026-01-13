@@ -97,7 +97,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   fontFamily: 'Nunito',
                   fontWeight: FontWeight.bold,
                   color: _textColor,
-                  letterSpacing: 0.4,
                 ),
               ),
 
@@ -112,8 +111,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: _fieldColor, // RGB(112,114,113)
-                  hintText: 'user@example.com',
+                  //hintText: 'user@example.com',
+                  hintText: 'Email',
                   hintStyle: TextStyle(
+                    fontFamily: 'Nunito',
                     color: _textColor.withOpacity(0.5),
                   ),
                   border: OutlineInputBorder(
@@ -133,6 +134,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               const Text(
                 'Enter your email address, and we’ll send you a link to reset your password.',
                 style: TextStyle(
+                  fontFamily: 'Nunito',
                   fontSize: 12,
                   color: _textColor,
                 ),
@@ -156,6 +158,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       : const Text(
                           'RESET PASSWORD',
                           style: TextStyle(
+                            fontFamily: 'Nunito',
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

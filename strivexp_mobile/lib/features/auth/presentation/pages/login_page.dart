@@ -103,7 +103,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     fontSize: 20,
                     fontFamily: 'Nunito',
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 0.4,
                   ),
                 ),
               ),
@@ -164,6 +163,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       : const Text(
                           'SIGN IN',
                           style: TextStyle(
+                            fontFamily: 'Nunito',
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -181,6 +181,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 child: const Text(
                   'FORGOT PASSWORD',
                   style: TextStyle(
+                    fontFamily: 'Nunito',
                     color: _buttonBlue,
                     fontWeight: FontWeight.bold,
                   ),
@@ -195,6 +196,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 'By signing in to StriveXP, you agree to our Terms and Privacy Policy.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  fontFamily: 'Nunito',
                   color: _textColor,
                   fontSize: 12,
                 ),
@@ -213,7 +215,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Text(
       text,
       style: const TextStyle(
-        color: Colors.black87, 
+        fontFamily: 'Nunito',
+        color: _textColor,
         fontSize: 14,
         fontWeight: FontWeight.w600,
       ),
@@ -231,6 +234,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       controller: controller,
       obscureText: obscureText,
       style: const TextStyle(
+        fontFamily: 'Nunito',
         color: _textColor, // RGB(231,231,231) - Texto Claro
         fontWeight: FontWeight.w500,
       ),
