@@ -61,6 +61,12 @@
 			<version>2.8.5</version>
 		</dependency>
 
+		<!-- Thymeleaf for the Password Reset Page -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
 		<!-- JWT Dependencies -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

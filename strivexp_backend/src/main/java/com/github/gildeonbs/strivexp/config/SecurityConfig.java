@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. PUBLIC ENDPOINTS
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/reset-password").permitAll()
 
                         // Swagger UI & API Docs (Permit-listing)
                         //.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
