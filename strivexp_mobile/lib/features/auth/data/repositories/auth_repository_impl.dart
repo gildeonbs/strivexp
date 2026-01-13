@@ -3,6 +3,7 @@ import '../../../../core/storage/secure_storage.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/auth_models.dart';
+import '../models/forgot_password_models.dart';
 
 // Providers
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -37,5 +38,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
     // TODO: Salvar Refresh Token para implementar renovação automática
     //await _storageService.saveRefreshToken(response.refreshToken);
+
   }
+
+  @override
+  Future<void> requestPasswordReset(String email) async {
+    final request = ForgotPasswordRequestModel(email: email);
+    // Chama o datasource
+    await _remoteDataSource.requestPasswordReset(request);
+  }
+
 }

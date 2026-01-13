@@ -5,4 +5,6 @@ abstract class AuthRepository {
   Future<bool> isSessionValid();
 
   Future<void> login(String email, String password);
+
+  Future<void> requestPasswordReset(String email);
 }

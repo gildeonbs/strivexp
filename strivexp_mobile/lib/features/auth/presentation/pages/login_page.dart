@@ -100,10 +100,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   'Log in with your StriveXP account',
                   style: TextStyle(
                     color: _textColor,
-                    fontSize: 18,
+                    fontSize: 20,
                     fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.4,
                   ),
                 ),
               ),
@@ -111,8 +111,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               //_buildLabel('Log in with your StriveXP account'),
               const SizedBox(height: 24),
 
-              //_buildLabel('Email'),
-              //const SizedBox(height: 8),
               _buildTextField(
                 controller: _emailController,
                 //hint: 'user@example.com',
@@ -179,8 +177,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               // 4. Forgot Password
               TextButton(
                 onPressed: () {
-                  // TODO: Implementar Forgot Password
-                },
+                  context.push(AppRoutes.forgotPassword);                },
                 child: const Text(
                   'FORGOT PASSWORD',
                   style: TextStyle(
