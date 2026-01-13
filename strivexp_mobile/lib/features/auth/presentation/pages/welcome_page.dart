@@ -59,7 +59,7 @@ class WelcomePage extends ConsumerWidget {
               SizedBox(
                 height: 56, // Altura padrão boa para touch targets
                 child: FilledButton(
-                  onPressed: () => viewModel.navigateToSignUp(GoRouter.of(context)),
+                  onPressed: () => viewModel.navigateToSignUpBirthday(GoRouter.of(context)),
                   style: FilledButton.styleFrom(
                     backgroundColor: primaryGreen,
                     foregroundColor: Colors.white,
