@@ -5,10 +5,9 @@ import com.github.gildeonbs.strivexp.service.AuthService;
 import com.github.gildeonbs.strivexp.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -37,6 +36,18 @@ public class AuthController {
             @RequestBody RefreshTokenRequest request
     ) {
         return ResponseEntity.ok(authService.refreshToken(request));
+    }
+
+    // --- Email verification Endpoint ---
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<String> verifyEmail(
+            @RequestParam("id") UUID id,
+            @RequestParam("token") String token
+    ) {
+        authService.verifyEmail(id, token);
+        // Returning simple HTML success message for browser users
+        return ResponseEntity.ok("<h1>Email Verified Successfully!</h1><p>You can now return to the app and login.</p>");
     }
 
     // --- Password Reset Endpoints ---
