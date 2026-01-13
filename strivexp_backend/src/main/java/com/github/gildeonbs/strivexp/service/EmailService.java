@@ -50,4 +50,34 @@ public class EmailService {
             log.error("Failed to send password reset email", e);
         }
     }
+
+    @Async
+    public void sendVerificationEmail(String to, String verificationLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject("StriveXP: Verify your email");
+
+            String htmlContent = """
+                <html>
+                <body>
+                    <h2>Welcome to StriveXP!</h2>
+                    <p>Please verify your email address to secure your account and enable future logins.</p>
+                    <p><a href="%s">Click here to Verify Email</a></p>
+                    <p>This link expires in 24 hours.</p>
+                </body>
+                </html>
+                """.formatted(verificationLink);
+
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("Verification email sent to {}", to);
+        } catch (MessagingException e) {
+            log.error("Failed to send verification email", e);
+        }
+    }
 }
