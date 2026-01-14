@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/router.dart';
-import '../viewmodels/forgot_password_viewmodel.dart';
+import '../viewmodels/email_viewmodel.dart';
 
-class ForgotPasswordPage extends ConsumerStatefulWidget {
-  const ForgotPasswordPage({super.key});
+class EmailPage extends ConsumerStatefulWidget {
+  const EmailPage({super.key});
 
   @override
-  ConsumerState<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
+  ConsumerState<EmailPage> createState() => _EmailPageState();
 }
 
-class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
+class _EmailPageState extends ConsumerState<EmailPage> {
   final _emailController = TextEditingController();
 
   static const Color _textColor = Color.fromARGB(255, 112, 114, 113);
@@ -25,33 +25,25 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     super.dispose();
   }
 
-  void _onSubmit() {
-    FocusScope.of(context).unfocus();
-    ref.read(forgotPasswordViewModelProvider.notifier).submit(
-      _emailController.text.trim(),
-    );
+  void _onNext() {
+    FocusScope.of(context).unfocus(); // Fecha teclado
+    ref.read(emailViewModelProvider.notifier).submitEmail(_emailController.text);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Listener para feedback visual e navegação
-    ref.listen(forgotPasswordViewModelProvider, (previous, next) {
+    // Listener para navegação
+    ref.listen(emailViewModelProvider, (previous, next) {
       next.when(
         data: (_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('If the email exists, a reset link was sent.'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Navega de volta para o Login
-          context.go(AppRoutes.login);
+          // Sucesso: Vai para a tela de Senha
+          context.push(AppRoutes.signUpPassword);
         },
         error: (err, stack) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(err.toString()),
-              backgroundColor: Colors.red[300],
+              content: Text(err.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.red,
             ),
           );
         },
@@ -59,7 +51,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       );
     });
 
-    final state = ref.watch(forgotPasswordViewModelProvider);
+    final state = ref.watch(emailViewModelProvider);
     final isLoading = state.isLoading;
 
     return Scaffold(
@@ -70,14 +62,11 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Header (Back Button)
+              // 1. Back Button
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  onPressed: () {
-                    // Veio do Login, posso usar pop ou go
-                    context.canPop() ? context.pop() : context.go(AppRoutes.login);
-                  },
+                  onPressed: () => context.pop(),
                   icon: SvgPicture.asset(
                     'assets/images/back_arrow.svg',
                     width: 24,
@@ -89,66 +78,62 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
               const SizedBox(height: 24),
 
-              // 2. Title "Forgot Password?"
+              // 2. Title
               const Text(
-                'Forgot Password?',
+                "What's your email?",
                 style: TextStyle(
-                  fontSize: 20,
                   fontFamily: 'Nunito',
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: _textColor,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // 3. Input Field (Cores específicas do prompt)
-              TextField(
-                controller: _emailController,
-                style: const TextStyle(
-                  color: _textColor, // RGB(231,231,231)
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: _fieldColor, // RGB(112,114,113)
-                  //hintText: 'user@example.com',
-                  hintText: 'Email',
-                  hintStyle: TextStyle(
-                    fontFamily: 'Nunito',
-                    color: _textColor.withOpacity(0.5),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, 
-                    vertical: 16
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // 4. Info text
-              const Text(
-                'Enter your email address, and we’ll send you a link to reset your password.',
-                style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 12,
                   color: _textColor,
                 ),
               ),
 
               const SizedBox(height: 32),
 
-              // 5. Button "RESET PASSWORD"
+              // 3. Email Field
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress, // Teclado otimizado para e-mail
+                decoration: InputDecoration(
+                  hintText: 'Email',
+                  hintStyle: TextStyle(color: _textColor.withOpacity(0.5)),
+                  filled: true,
+                  fillColor: _fieldColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+                style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    color: _textColor
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 4. Helper Text
+              const Text(
+                "Enter your best email address! We’ll send a quick link to verify it’s you.",
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  color: _textColor,
+                  fontSize: 13,
+                  height: 1.4, // Melhor legibilidade
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // 5. NEXT Button
               SizedBox(
                 height: 56,
                 child: FilledButton(
-                  onPressed: isLoading ? null : _onSubmit,
+                  onPressed: isLoading ? null : _onNext,
                   style: FilledButton.styleFrom(
-                    backgroundColor: _buttonBlue, // RGB(132, 186, 220)
+                    backgroundColor: _buttonBlue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -156,9 +141,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                          'RESET PASSWORD',
+                          'NEXT',
                           style: TextStyle(
-                            fontFamily: 'Nunito',
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -173,4 +157,5 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     );
   }
 }
+
 

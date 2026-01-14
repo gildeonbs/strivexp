@@ -44,10 +44,9 @@ class WelcomePage extends ConsumerWidget {
                   'Level up your life.',
                   style: TextStyle(
                     color: sloganYellow,
-                    fontSize: 18,
+                    fontSize: 20,
                     fontFamily: 'Nunito',
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
                   ),
                 ),
               ),
@@ -59,7 +58,7 @@ class WelcomePage extends ConsumerWidget {
               SizedBox(
                 height: 56, // Altura padrão boa para touch targets
                 child: FilledButton(
-                  onPressed: () => viewModel.navigateToSignUp(GoRouter.of(context)),
+                  onPressed: () => viewModel.navigateToSignUpBirthday(GoRouter.of(context)),
                   style: FilledButton.styleFrom(
                     backgroundColor: primaryGreen,
                     foregroundColor: Colors.white,
@@ -71,6 +70,7 @@ class WelcomePage extends ConsumerWidget {
                   child: const Text(
                     'GET STARTED',
                     style: TextStyle(
+                      fontFamily: 'Nunito',
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -97,6 +97,7 @@ class WelcomePage extends ConsumerWidget {
                   child: const Text(
                     'I ALREADY HAVE AN ACCOUNT',
                     style: TextStyle(
+                      fontFamily: 'Nunito',
                       fontSize: 14, // Levemente menor pois o texto é longo
                       fontWeight: FontWeight.bold,
                     ),

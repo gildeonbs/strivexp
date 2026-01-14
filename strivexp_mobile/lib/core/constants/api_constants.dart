@@ -6,5 +6,7 @@ class ApiConstants {
 
   static const String passwordResetRequestEndpoint = '/api/auth/password-reset/request';
 
+  static const String registerEndpoint = '/api/auth/register';
+
 }
 

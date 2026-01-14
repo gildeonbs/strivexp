@@ -12,6 +12,7 @@ final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
 abstract class AuthRemoteDataSource {
   Future<AuthResponseModel> login(LoginRequestModel request);
   Future<ForgotPasswordResponseModel> requestPasswordReset(ForgotPasswordRequestModel request);
+  Future<AuthResponseModel> register(RegisterRequestModel request);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -48,6 +49,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<AuthResponseModel> register(RegisterRequestModel request) async {
+    try {
+      // 1. Chamada Real ao Endpoint
+      final response = await _dio.post(
+        ApiConstants.registerEndpoint,
+        data: request.toJson(),
+      );
+
+      // 2. Retorna os tokens (AccessToken/RefreshToken)
+      return AuthResponseModel.fromJson(response.data);
+
+    } on DioException catch (e) {
+      // 3. Tratamento de Erros Específicos de Registro
+      if (e.response != null) {
+        final data = e.response?.data;
+        if (data is Map<String, dynamic>) {
+          // Ex: "Email already in use"
+          final message = data['message'] ?? data['error'] ?? 'Registration failed';
+          throw Exception(message);
+        }
+      }
+      throw Exception('Connection error. Please check your internet.');
+    }
+  }
 
   @override
   Future<ForgotPasswordResponseModel> requestPasswordReset(ForgotPasswordRequestModel request) async {

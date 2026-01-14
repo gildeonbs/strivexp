@@ -6,11 +6,14 @@ import '../../../../core/router/router.dart';
 class WelcomeViewModel extends StateNotifier<void> {
   WelcomeViewModel() : super(null);
 
-  void navigateToSignUp(GoRouter router) {
-    // "Get Started" leva para criar conta
-    router.push(AppRoutes.signup);
+  // void navigateToSignUp(GoRouter router) {
+  //   // "Get Started" leva para criar conta
+  //   router.push(AppRoutes.signup);
+  // }
+  void navigateToSignUpBirthday(GoRouter router) {
+    // "Get Started" leva para cria conta (wizard)
+    router.push(AppRoutes.signUpBirthday);
   }
-
   void navigateToSignIn(GoRouter router) {
     // "Already have account" leva para login
     router.push(AppRoutes.login);
