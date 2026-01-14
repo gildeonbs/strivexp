@@ -3,18 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/router.dart';
-import '../viewmodels/name_viewmodel.dart';
+import '../viewmodels/email_viewmodel.dart';
 
-class NamePage extends ConsumerStatefulWidget {
-  const NamePage({super.key});
+class EmailPage extends ConsumerStatefulWidget {
+  const EmailPage({super.key});
 
   @override
-  ConsumerState<NamePage> createState() => _NamePageState();
+  ConsumerState<EmailPage> createState() => _EmailPageState();
 }
 
-class _NamePageState extends ConsumerState<NamePage> {
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
+class _EmailPageState extends ConsumerState<EmailPage> {
+  final _emailController = TextEditingController();
 
   static const Color _textColor = Color.fromARGB(255, 112, 114, 113);
   static const Color _fieldColor = Color.fromARGB(255, 231, 231, 231);
@@ -22,33 +21,29 @@ class _NamePageState extends ConsumerState<NamePage> {
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
   void _onNext() {
     FocusScope.of(context).unfocus(); // Fecha teclado
-    ref.read(nameViewModelProvider.notifier).submitName(
-      _firstNameController.text,
-      _lastNameController.text,
-    );
+    ref.read(emailViewModelProvider.notifier).submitEmail(_emailController.text);
   }
 
   @override
   Widget build(BuildContext context) {
     // Listener para navegação
-    ref.listen(nameViewModelProvider, (previous, next) {
+    ref.listen(emailViewModelProvider, (previous, next) {
       next.when(
         data: (_) {
-          // Sucesso: Vai para a tela de Email
-          context.push(AppRoutes.signUpEmail);
+          // Sucesso: Vai para a tela de Senha
+          context.push(AppRoutes.signUpPassword);
         },
         error: (err, stack) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(err.toString().replaceAll('Exception: ', '')),
-              backgroundColor: Colors.red[300],
+              backgroundColor: Colors.red,
             ),
           );
         },
@@ -56,7 +51,7 @@ class _NamePageState extends ConsumerState<NamePage> {
       );
     });
 
-    final state = ref.watch(nameViewModelProvider);
+    final state = ref.watch(emailViewModelProvider);
     final isLoading = state.isLoading;
 
     return Scaffold(
@@ -85,7 +80,7 @@ class _NamePageState extends ConsumerState<NamePage> {
 
               // 2. Title
               const Text(
-                "What's your name?",
+                "What's your email?",
                 style: TextStyle(
                   fontFamily: 'Nunito',
                   fontSize: 24,
@@ -96,18 +91,38 @@ class _NamePageState extends ConsumerState<NamePage> {
 
               const SizedBox(height: 32),
 
-              // 3. First Name Field
-              _buildTextInput(
-                controller: _firstNameController,
-                hint: 'First name',
+              // 3. Email Field
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress, // Teclado otimizado para e-mail
+                decoration: InputDecoration(
+                  hintText: 'Email',
+                  hintStyle: TextStyle(color: _textColor.withOpacity(0.5)),
+                  filled: true,
+                  fillColor: _fieldColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+                style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    color: _textColor
+                ),
               ),
 
-              const SizedBox(height: 4),
+              const SizedBox(height: 16),
 
-              // 4. Last Name Field
-              _buildTextInput(
-                controller: _lastNameController,
-                hint: 'Last name',
+              // 4. Helper Text
+              const Text(
+                "Enter your best email address! We’ll send a quick link to verify it’s you.",
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  color: _textColor,
+                  fontSize: 13,
+                  height: 1.4, // Melhor legibilidade
+                ),
               ),
 
               const SizedBox(height: 40),
@@ -141,30 +156,6 @@ class _NamePageState extends ConsumerState<NamePage> {
       ),
     );
   }
-
-  Widget _buildTextInput({
-    required TextEditingController controller,
-    required String hint,
-  }) {
-    return TextField(
-      controller: controller,
-      textCapitalization: TextCapitalization.words, // Capitaliza nomes
-      style: const TextStyle(
-        fontFamily: 'Nunito',
-        color: _textColor
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: _textColor.withOpacity(0.5)),
-        filled: true,
-        fillColor: _fieldColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-    );
-  }
 }
+
 

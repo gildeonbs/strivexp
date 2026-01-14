@@ -12,7 +12,9 @@ class SignUpNotifier extends StateNotifier<SignUpStateModel> {
     state = state.copyWith(firstName: firstName, lastName: lastName);
   }
 
-  // void setCredentials(String email, String pass) { ... }
+  void setEmail(String email) {
+    state = state.copyWith(email: email);
+  }
 }
 
 // Provider global para o fluxo de cadastro

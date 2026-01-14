@@ -8,6 +8,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/birthday_page.dart';
 import '../../features/auth/presentation/pages/name_page.dart';
+import '../../features/auth/presentation/pages/email_page.dart';
 
 // Rotas como constantes para evitar erros de digitação
 class AppRoutes {
@@ -20,6 +21,7 @@ class AppRoutes {
   static const signUpBirthday = '/signup/birthday';
   static const signUpName = '/signup/name';
   static const signUpEmail = '/signup/email';
+  static const signUpPassword = '/signup/password';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -58,10 +60,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NamePage(),
       ),
       // Passo 3: Email (Placeholder)
+      // Passo 3: Email (Implementação atual)
       GoRoute(
         path: AppRoutes.signUpEmail,
+        builder: (context, state) => const EmailPage(),
+      ),
+      // Passo 4: Password (Placeholder para o futuro)
+      GoRoute(
+        path: AppRoutes.signUpPassword,
         builder: (context, state) => const Scaffold(
-          body: Center(child: Text("GET STARTED 3 - Email (Next Step)")),
+          body: Center(child: Text("GET STARTED 4 - Create Password (Next Step)")),
         ),
       ),
     ],
