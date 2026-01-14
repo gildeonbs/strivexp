@@ -12,6 +12,7 @@ final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
 abstract class AuthRemoteDataSource {
   Future<AuthResponseModel> login(LoginRequestModel request);
   Future<ForgotPasswordResponseModel> requestPasswordReset(ForgotPasswordRequestModel request);
+  Future<AuthResponseModel> register(RegisterRequestModel request);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -48,6 +49,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<AuthResponseModel> register(RegisterRequestModel request) async {
+    // MOCK: Simulação da chamada API
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Imprime no console para confirmar que os dados chegaram corretamente (Debug)
+    print("MOCK API REGISTER: ${request.toJson()}");
+
+    // Retorna tokens simulados
+    return AuthResponseModel(
+        accessToken: "mock_access_token",
+        refreshToken: "mock_refresh_token"
+    );
+  }
 
   @override
   Future<ForgotPasswordResponseModel> requestPasswordReset(ForgotPasswordRequestModel request) async {

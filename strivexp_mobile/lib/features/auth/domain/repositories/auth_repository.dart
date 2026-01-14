@@ -1,4 +1,5 @@
 //import '../entities/user_entity.dart';
+import '../../data/models/auth_models.dart';
 
 abstract class AuthRepository {
   // Verifica se existe um token persistido
@@ -7,4 +8,7 @@ abstract class AuthRepository {
   Future<void> login(String email, String password);
 
   Future<void> requestPasswordReset(String email);
+
+  Future<void> register(RegisterRequestModel request);
+
 }

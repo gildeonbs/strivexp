@@ -48,4 +48,11 @@ class AuthRepositoryImpl implements AuthRepository {
     await _remoteDataSource.requestPasswordReset(request);
   }
 
+  @override
+  Future<void> register(RegisterRequestModel request) async {
+    final response = await _remoteDataSource.register(request);
+    // Ao registar, geralmente já logamos o utilizador
+    await _storageService.saveToken(response.accessToken);
+  }
+
 }
