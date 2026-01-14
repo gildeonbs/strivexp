@@ -8,8 +8,10 @@ class SignUpNotifier extends StateNotifier<SignUpStateModel> {
     state = state.copyWith(birthday: date);
   }
 
-  // Futuros métodos:
-  // void setName(String first, String last) { ... }
+  void setName(String firstName, String lastName) {
+    state = state.copyWith(firstName: firstName, lastName: lastName);
+  }
+
   // void setCredentials(String email, String pass) { ... }
 }
 
