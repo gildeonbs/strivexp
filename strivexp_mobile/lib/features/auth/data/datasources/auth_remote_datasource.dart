@@ -51,17 +51,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<AuthResponseModel> register(RegisterRequestModel request) async {
-    // MOCK: Simulação da chamada API
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // 1. Chamada Real ao Endpoint
+      final response = await _dio.post(
+        ApiConstants.registerEndpoint,
+        data: request.toJson(),
+      );
 
-    // Imprime no console para confirmar que os dados chegaram corretamente (Debug)
-    print("MOCK API REGISTER: ${request.toJson()}");
+      // 2. Retorna os tokens (AccessToken/RefreshToken)
+      return AuthResponseModel.fromJson(response.data);
 
-    // Retorna tokens simulados
-    return AuthResponseModel(
-        accessToken: "mock_access_token",
-        refreshToken: "mock_refresh_token"
-    );
+    } on DioException catch (e) {
+      // 3. Tratamento de Erros Específicos de Registro
+      if (e.response != null) {
+        final data = e.response?.data;
+        if (data is Map<String, dynamic>) {
+          // Ex: "Email already in use"
+          final message = data['message'] ?? data['error'] ?? 'Registration failed';
+          throw Exception(message);
+        }
+      }
+      throw Exception('Connection error. Please check your internet.');
+    }
   }
 
   @override
