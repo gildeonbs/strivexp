@@ -8,5 +8,9 @@ class ApiConstants {
 
   static const String registerEndpoint = '/api/auth/register';
 
+  static const String categoriesEndpoint = '/api/categories';
+
+  static const String categoriesPreferencesEndpoint = '/api/categories/preferences';
+
 }
 

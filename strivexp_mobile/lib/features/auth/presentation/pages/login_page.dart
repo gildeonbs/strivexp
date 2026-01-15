@@ -42,25 +42,51 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   // Escuta mudanças de estado para Ações (Navegação/Snackbar)
+  //   ref.listen(loginViewModelProvider, (previous, next) {
+  //     next.when(
+  //       data: (_) {
+  //         // Sucesso: Vai para Home
+  //         context.go(AppRoutes.home);
+  //       },
+  //       error: (err, stack) {
+  //         // Erro: Mostra Snackbar
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text('Login failed: ${err.toString()}'),
+  //             backgroundColor: Colors.red[300],
+  //           ),
+  //         );
+  //       },
+  //       loading: () {}, // Loading é tratado visualmente no botão
+  //     );
+  //   });
+
+
   @override
   Widget build(BuildContext context) {
-    // Escuta mudanças de estado para Ações (Navegação/Snackbar)
+    // Escuta mudanças de estado para Ações (Navegação Inteligente)
     ref.listen(loginViewModelProvider, (previous, next) {
       next.when(
-        data: (_) {
-          // Sucesso: Vai para Home
-          context.go(AppRoutes.home);
+        data: (destination) {
+          if (destination == LoginNavigationDestination.home) {
+            context.go(AppRoutes.home);
+          } else if (destination == LoginNavigationDestination.categoriesPreferences) {
+            // Redireciona para a tela de seleção de categorias
+            context.go(AppRoutes.categoriesPreferences);
+          }
         },
         error: (err, stack) {
-          // Erro: Mostra Snackbar
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Login failed: ${err.toString()}'),
-              backgroundColor: Colors.red[300],
+              content: Text('Login failed: ${err.toString().replaceAll("Exception: ", "")}'),
+              backgroundColor: Colors.red,
             ),
           );
         },
-        loading: () {}, // Loading é tratado visualmente no botão
+        loading: () {},
       );
     });
 
@@ -80,7 +106,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () => context.go(AppRoutes.welcome),
                   icon: SvgPicture.asset(
                     'assets/images/back_arrow.svg',
                     width: 24,
