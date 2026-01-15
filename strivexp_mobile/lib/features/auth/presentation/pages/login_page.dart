@@ -106,7 +106,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () => context.go(AppRoutes.welcome),
                   icon: SvgPicture.asset(
                     'assets/images/back_arrow.svg',
                     width: 24,

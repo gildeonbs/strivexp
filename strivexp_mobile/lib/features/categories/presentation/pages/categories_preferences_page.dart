@@ -48,27 +48,13 @@ class CategoriesPreferencesPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
              // 1. Header (Back Button & Titles)
-            Padding(
-              padding: const EdgeInsets.all(24.0),
+            const Padding(
+              padding: EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      alignment: Alignment.centerLeft,
-                      onPressed: () => context.pop(),
-                      icon: SvgPicture.asset(
-                        'assets/images/back_arrow.svg',
-                        width: 24,
-                        height: 24,
-                        placeholderBuilder: (_) => const Icon(Icons.arrow_back),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 40),
+                  Text(
                     "Which areas would you like to level up?",
                     style: TextStyle(
                       fontSize: 24,
@@ -78,8 +64,8 @@ class CategoriesPreferencesPage extends ConsumerWidget {
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     "Choose the parts of yourself you want to grow.",
                     style: TextStyle(
                       fontSize: 16,
@@ -87,6 +73,7 @@ class CategoriesPreferencesPage extends ConsumerWidget {
                       height: 1.4,
                     ),
                   ),
+                  SizedBox(height: 8),
                 ],
               ),
             ),
