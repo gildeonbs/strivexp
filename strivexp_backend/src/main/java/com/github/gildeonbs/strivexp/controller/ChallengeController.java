@@ -34,4 +34,9 @@ public class ChallengeController {
         
         return ResponseEntity.ok(challengeService.completeChallenge(id, request));
     }
+
+    @PostMapping("/{id}/skip")
+    public ResponseEntity<UserChallengeDto> skipChallenge(@PathVariable UUID id) {
+        return ResponseEntity.ok(challengeService.skipChallenge(id));
+    }
 }

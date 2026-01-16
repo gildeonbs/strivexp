@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -42,6 +44,7 @@ public class ChallengeService {
         List<UserChallenge> existing = userChallengeRepository.findByUserIdAndAssignedDate(userId, today);
 
         if (!existing.isEmpty()) {
+
             return existing.stream().map(this::mapToDto).collect(Collectors.toList());
         }
 
@@ -56,13 +59,17 @@ public class ChallengeService {
         } else {
             // Filter: Only show challenges from selected categories
             dailyChallenges = challengeRepository.findByRecurrenceAndIsActiveTrueAndCategoryIdIn(
-                    ChallengeRecurrence.DAILY,
-                    preferredCategoryIds
+                    ChallengeRecurrence.DAILY, preferredCategoryIds
             );
         }
         // --- NEW LOGIC END ---
 
+        // Limit to 1 challenges (or user setting limit)
+        // Shuffling to ensure randomness
+        // Collections.shuffle(dailyChallenges);
+        // List<Challenge> selected = dailyChallenges.stream().limit(1).toList();
         List<UserChallenge> newAssignments = dailyChallenges.stream()
+                .limit(1)
                 .map(challenge -> UserChallenge.builder()
                         .user(user)
                         .challenge(challenge)
@@ -109,6 +116,81 @@ public class ChallengeService {
         streakService.updateStreak(assignment.getUser().getId());
 
         return mapToDto(saved);
+    }
+
+    // Skip & Replace Logic ---
+
+    @Transactional
+    public UserChallengeDto skipChallenge(UUID userChallengeId) {
+        UserChallenge assignment = userChallengeRepository.findById(userChallengeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found with id: " + userChallengeId));
+
+        if (assignment.getStatus() != ChallengeStatus.ASSIGNED) {
+            throw new BadRequestException("Only assigned challenges can be skipped.");
+        }
+
+        // 1. Mark as Skipped
+        assignment.setStatus(ChallengeStatus.SKIPPED);
+        userChallengeRepository.save(assignment);
+
+        // 2. Try to find a replacement
+        Optional<Challenge> replacement = findReplacementChallenge(assignment.getUser());
+
+        if (replacement.isPresent()) {
+            UserChallenge newAssignment = UserChallenge.builder()
+                    .user(assignment.getUser())
+                    .challenge(replacement.get())
+                    .assignedDate(LocalDate.now())
+                    .status(ChallengeStatus.ASSIGNED)
+                    .xpAwarded(0)
+                    .note("Replacement for skipped challenge")
+                    .build();
+
+            UserChallenge savedReplacement = userChallengeRepository.save(newAssignment);
+
+            // Return the NEW challenge so the UI can swap it in immediately
+            return mapToDto(savedReplacement);
+        }
+
+        // If no replacement found (e.g. they did ALL available challenges), return the skipped one
+        // The UI handles this by showing "Skipped" and no new item.
+        return mapToDto(assignment);
+    }
+
+    private Optional<Challenge> findReplacementChallenge(User user) {
+        LocalDate today = LocalDate.now();
+        UUID userId = user.getId();
+
+        // A. Get IDs of challenges already assigned/completed/skipped TODAY
+        List<UUID> assignedChallengeIds = userChallengeRepository.findByUserIdAndAssignedDate(userId, today)
+                .stream()
+                .map(uc -> uc.getChallenge().getId())
+                .collect(Collectors.toList());
+
+        // B. Get User Preferences
+        List<UUID> preferredCategoryIds = userCategoryRepository.findCategoryIdsByUserId(userId);
+
+        // C. Fetch Candidates
+        List<Challenge> candidates;
+        if (preferredCategoryIds.isEmpty()) {
+            candidates = challengeRepository.findByRecurrenceAndIsActiveTrue(ChallengeRecurrence.DAILY);
+        } else {
+            candidates = challengeRepository.findByRecurrenceAndIsActiveTrueAndCategoryIdIn(
+                    ChallengeRecurrence.DAILY, preferredCategoryIds
+            );
+        }
+
+        // D. Filter out ones already assigned
+        List<Challenge> available = candidates.stream()
+                .filter(c -> !assignedChallengeIds.contains(c.getId()))
+                .collect(Collectors.toList());
+
+        if (available.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // E. Pick a random one
+        return Optional.of(available.get(new Random().nextInt(available.size())));
     }
 
     private UserChallengeDto mapToDto(UserChallenge uc) {
