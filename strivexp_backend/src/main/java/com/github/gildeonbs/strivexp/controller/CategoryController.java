@@ -5,6 +5,7 @@ import com.github.gildeonbs.strivexp.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public class CategoryController {
     @PutMapping("/preferences")
     public ResponseEntity<Void> updatePreferences(
             Authentication authentication,
-            @RequestBody UpdatePreferencesRequest request) {
+            @Validated @RequestBody UpdatePreferencesRequest request) {
         categoryService.updatePreferences(authentication.getName(), request);
         return ResponseEntity.ok().build();
     }

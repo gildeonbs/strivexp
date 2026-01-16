@@ -14,26 +14,20 @@ class CategoriesPreferencesPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Escuta o provider para navegação e erros
+    // 1. LISTENER APENAS PARA ERROS (Snackbar)
     ref.listen(categoriesViewModelProvider, (previous, next) {
-      if (previous?.isLoading == true && !next.isLoading && next.hasValue) {
-        // Se saiu de loading e tem valor, foi um sucesso no submit
-        // Nota: Precisamos distinguir "load inicial" de "submit". 
-        // Em um app real, usaríamos um state object mais complexo.
-        // Assumindo que o submit foi chamado manualmente, navegamos.
-        // Para simplificar aqui: se o usuário clicar no botão, ele espera navegar.
-        // Vamos deixar a navegação no callback do botão ou usar um boolean "isSubmitted" no provider.
-        
-        // Porem, como o _loadCategories roda no inicio, ele tbm dispara isso.
-        // Vamos gerenciar a navegação manualmente no onPressed para garantir,
-        // ou checar se foi uma ação de escrita.
-      }
-      
-      if (next.hasError) {
+      if (next.hasError && !next.isLoading) {
+
+        // Limpar a fila antes de mostrar
+        // Isso remove a SnackBar anterior instantaneamente, dando lugar à nova.
+        ScaffoldMessenger.of(context).clearSnackBars();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            // Remove o prefixo "Exception: " para ficar mais limpo
             content: Text(next.error.toString().replaceAll('Exception: ', '')),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -41,61 +35,86 @@ class CategoriesPreferencesPage extends ConsumerWidget {
 
     final state = ref.watch(categoriesViewModelProvider);
 
+    // Tenta obter a lista de dados, mesmo que esteja em erro ou loading
+    final categories = state.valueOrNull;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-             // 1. Header (Back Button & Titles)
+            // 1. Header (Back Button & Titles)
             const Padding(
               padding: EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 40),
+                  SizedBox(height: 24),
+                  // Align(
+                  //   alignment: Alignment.centerLeft,
+                  //   child: IconButton(
+                  //     padding: EdgeInsets.zero,
+                  //     alignment: Alignment.centerLeft,
+                  //     onPressed: () => context.pop(),
+                  //     icon: SvgPicture.asset(
+                  //       'assets/images/back_arrow.svg',
+                  //       width: 24,
+                  //       height: 24,
+                  //       placeholderBuilder: (_) => const Icon(Icons.arrow_back),
+                  //     ),
+                  //   ),
+                  // ),
+                  SizedBox(height: 16),
                   Text(
                     "Which areas would you like to level up?",
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: _textColor,
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.bold,
-                      height: 1.2,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.2,color: _textColor, fontFamily: 'Nunito'),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 12),
                   Text(
                     "Choose the parts of yourself you want to grow.",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: _textColor,
-                      height: 1.4,
-                    ),
+                    style: TextStyle(fontSize: 16, height: 1.4, color: _textColor, fontFamily: 'Nunito'),
                   ),
-                  SizedBox(height: 8),
                 ],
               ),
             ),
 
             // 2. Categories List
             Expanded(
-              child: state.when(
-                loading: () => const Center(child: CircularProgressIndicator(color: _greenColor)),
-                error: (err, _) => Center(child: Text("Error: $err")),
-                data: (categories) {
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: categories.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      return _buildCategoryCard(
-                        category, 
-                        () => ref.read(categoriesViewModelProvider.notifier).toggleSelection(category.id)
-                      );
-                    },
-                  );
+              child: Builder(
+                builder: (context) {
+                  // Se não temos dados nenhuns E está carregando -> Spinner inicial
+                  if (categories == null && state.isLoading) {
+                    return const Center(child: CircularProgressIndicator(color: _greenColor));
+                  }
+
+                  // Se não temos dados E deu erro -> Mensagem de erro tela cheia
+                  if (categories == null && state.hasError) {
+                    return Center(child: Text("Error: ${state.error}"));
+                  }
+
+                  // Se temos dados (mesmo com erro no topo ou loading), mostramos a lista!
+                  if (categories != null) {
+                    return ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: categories.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final category = categories[index];
+                        return _buildCategoryCard(
+                            category,
+                                () {
+                              // Só permite clicar se não estiver enviando
+                              if (!state.isLoading) {
+                                ref.read(categoriesViewModelProvider.notifier).toggleSelection(category.id);
+                              }
+                            }
+                        );
+                      },
+                    );
+                  }
+
+                  return const SizedBox.shrink();
                 },
               ),
             ),
@@ -110,31 +129,32 @@ class CategoriesPreferencesPage extends ConsumerWidget {
                     height: 56,
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: state.isLoading 
-                        ? null 
-                        : () async {
-                            await ref.read(categoriesViewModelProvider.notifier).submitPreferences(isSelectAll: false);
-                            if (context.mounted) context.go(AppRoutes.home);
-                          },
+                      // Desabilita visualmente se estiver loading
+                      onPressed: state.isLoading
+                          ? null
+                          : () async {
+                        // CORREÇÃO DA NAVEGAÇÃO:
+                        final success = await ref.read(categoriesViewModelProvider.notifier)
+                            .submitPreferences(isSelectAll: false);
+
+                        // Só navega se retornou true
+                        if (success && context.mounted) {
+                          context.go(AppRoutes.home);
+                        }
+                      },
                       style: FilledButton.styleFrom(
                         backgroundColor: _greenColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: state.isLoading 
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                          "NEXT",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold
-                          ),
-                        ),
+                      child: state.isLoading
+                          ? const SizedBox(
+                          width: 24, height: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      )
+                          : const Text("NEXT", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Nunito')),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
 
                   // Botão SKIP (SELECT ALL)
@@ -142,27 +162,22 @@ class CategoriesPreferencesPage extends ConsumerWidget {
                     height: 56,
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: state.isLoading 
-                        ? null 
-                        : () async {
-                             await ref.read(categoriesViewModelProvider.notifier).submitPreferences(isSelectAll: true);
-                             if (context.mounted) context.go(AppRoutes.home);
-                          },
+                      onPressed: state.isLoading
+                          ? null
+                          : () async {
+                        final success = await ref.read(categoriesViewModelProvider.notifier)
+                            .submitPreferences(isSelectAll: true);
+
+                        if (success && context.mounted) {
+                          context.go(AppRoutes.home);
+                        }
+                      },
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.grey), // Borda cinza
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        side: const BorderSide(color: Colors.grey),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         backgroundColor: Colors.white,
                       ),
-                      child: const Text(
-                        "SKIP (SELECT ALL)",
-                        style: TextStyle(
-                          color: _greenColor, // Texto verde
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold
-                        ),
-                      ),
+                      child: const Text("SKIP (SELECT ALL)", style: TextStyle(color: _greenColor, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Nunito')),
                     ),
                   ),
                 ],
@@ -174,7 +189,8 @@ class CategoriesPreferencesPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCategoryCard(category, VoidCallback onTap) {
+  // Widget _buildCategoryCard
+  Widget _buildCategoryCard(dynamic category, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -198,6 +214,7 @@ class CategoriesPreferencesPage extends ConsumerWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   //fontWeight: FontWeight.w500,
+                  fontFamily: 'Nunito',
                   color: _textColor,
                 ),
               ),
@@ -207,8 +224,7 @@ class CategoriesPreferencesPage extends ConsumerWidget {
 
             // Check Circle
             Container(
-              width: 24,
-              height:24,
+              width: 24, height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: category.isSelected ? _greenColor : Colors.transparent,
