@@ -40,27 +40,27 @@ class CategoriesViewModel extends StateNotifier<AsyncValue<List<CategoryModel>>>
 
   // Salva as preferências
   // Se isSelectAll for true, ignora a seleção manual e envia todos os IDs
-  Future<void> submitPreferences({bool isSelectAll = false}) async {
+  Future<bool> submitPreferences({bool isSelectAll = false}) async {
+    // Se já estiver carregando, ignora novas chamadas imediatamente.
+    if (state.isLoading) return false;
+
     // Mantemos o estado atual enquanto carregamos, ou mudamos para loading
     // Para UX, vamos apenas pegar os dados atuais
     final currentList = state.value;
-    if (currentList == null) return;
+    if (currentList == null) return false;
 
     try {
       // Define o estado como loading para mostrar spinner no botão
       // Nota: Idealmente teríamos um estado separado para "Submitting", 
       // mas usaremos o AsyncValue.loading() por simplicidade.
-      state = const AsyncValue.loading();
+      state = AsyncValue<List<CategoryModel>>.loading().copyWithPrevious(state);
 
       List<String> idsToSend;
-      
+
       if (isSelectAll) {
         idsToSend = currentList.map((e) => e.id).toList();
       } else {
-        idsToSend = currentList
-            .where((e) => e.isSelected)
-            .map((e) => e.id)
-            .toList();
+        idsToSend = currentList.where((e) => e.isSelected).map((e) => e.id).toList();
       }
 
       await _useCase.save(idsToSend);
@@ -68,12 +68,14 @@ class CategoriesViewModel extends StateNotifier<AsyncValue<List<CategoryModel>>>
       // Ao sucesso, podemos recarregar ou navegar. 
       // Como a navegação é feita na UI via listener, aqui apenas retornamos o data original
       state = AsyncValue.data(currentList);
-      
+      return true;
+
     } catch (e, stack) {
-      // Restaura a lista em caso de erro
-      state = AsyncValue.error(e, stack);
+      // Erro: Guarda o erro, mas MANTÉM A LISTA VISÍVEL (copyWithPrevious)
+      state = AsyncValue<List<CategoryModel>>.error(e, stack).copyWithPrevious(state);
       // Recarrega os dados para garantir consistência se necessário
-      // _loadCategories(); 
+      // _loadCategories();
+      return false;
     }
   }
 }

@@ -36,7 +36,6 @@ class CategoriesRemoteDataSourceImpl implements CategoriesRemoteDataSource {
   @override
   Future<void> savePreferences(List<String> categoryIds) async {
     try {
-      // Body: { "categoryIds": ["id1", "id2"] }
       final body = {
         "categoryIds": categoryIds
       };
@@ -46,6 +45,15 @@ class CategoriesRemoteDataSourceImpl implements CategoriesRemoteDataSource {
         data: body,
       );
     } on DioException catch (e) {
+      // TRATAMENTO MELHORADO PARA O ERRO 400
+      if (e.response != null && e.response?.data != null) {
+        final data = e.response?.data;
+        if (data is Map<String, dynamic>) {
+          // Captura a mensagem "Validation failed: categoryIds: You must select at least one category"
+          final message = data['message'] ?? data['error'] ?? 'Failed to save preferences';
+          throw Exception(message);
+        }
+      }
       throw Exception('Failed to save preferences: ${e.message}');
     }
   }
