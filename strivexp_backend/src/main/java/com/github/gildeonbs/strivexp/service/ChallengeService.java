@@ -86,7 +86,8 @@ public class ChallengeService {
     }
 
     @Transactional
-    public UserChallengeDto completeChallenge(UUID userChallengeId, CompleteChallengeRequest request) {
+    // public UserChallengeDto completeChallenge(UUID userChallengeId, CompleteChallengeRequest request) { // Request for "note"
+    public UserChallengeDto completeChallenge(UUID userChallengeId) {
         UserChallenge assignment = userChallengeRepository.findById(userChallengeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment not found with id: " + userChallengeId));
 
@@ -96,7 +97,7 @@ public class ChallengeService {
 
         assignment.setStatus(ChallengeStatus.COMPLETED);
         assignment.setCompletedAt(Instant.now());
-        assignment.setNote(request.note());
+        //assignment.setNote(request.note());
 
         int xpToAward = assignment.getChallenge().getXpReward();
         assignment.setXpAwarded(xpToAward);
@@ -119,7 +120,6 @@ public class ChallengeService {
     }
 
     // Skip & Replace Logic ---
-
     @Transactional
     public UserChallengeDto skipChallenge(UUID userChallengeId) {
         UserChallenge assignment = userChallengeRepository.findById(userChallengeId)
