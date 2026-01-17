@@ -197,7 +197,7 @@ public class ChallengeService {
         Challenge c = uc.getChallenge();
         ChallengeResponseDto cDto = new ChallengeResponseDto(
                 c.getId(), c.getTitle(), c.getDescription(), c.getXpReward(),
-                c.getCategory().getName(), c.getDifficulty()
+                c.getCategory().getName(), c.getCategory().getIcon(), c.getDifficulty()
         );
         return new UserChallengeDto(uc.getId(), cDto, uc.getAssignedDate(), uc.getStatus(), uc.getXpAwarded());
     }

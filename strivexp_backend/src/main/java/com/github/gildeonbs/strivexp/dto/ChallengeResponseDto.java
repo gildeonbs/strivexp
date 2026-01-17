@@ -8,5 +8,6 @@ public record ChallengeResponseDto(
         String description,
         Integer xpReward,
         String categoryName,
+        String icon,
         Short difficulty
 ) {}
