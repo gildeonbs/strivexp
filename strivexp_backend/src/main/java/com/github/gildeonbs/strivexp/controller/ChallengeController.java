@@ -26,7 +26,7 @@ public class ChallengeController {
         return ResponseEntity.ok(challengeService.getOrAssignDailyChallenges(userEmail));
     }
 
-//    // Endpoint: POST /api/challenges/{id}/complete
+//    // Endpoint: POST /api/challenges/{id}/complete | With "note"
 //    @PostMapping("/{id}/complete")
 //    public ResponseEntity<UserChallengeDto> completeChallenge(
 //            @PathVariable UUID id,
