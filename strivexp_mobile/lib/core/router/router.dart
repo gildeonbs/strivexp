@@ -12,6 +12,7 @@ import '../../features/auth/presentation/pages/email_page.dart';
 import '../../features/auth/presentation/pages/password_page.dart';
 import '../../features/categories/presentation/pages/categories_preferences_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
 
 
 
@@ -29,6 +30,7 @@ class AppRoutes {
   static const signUpEmail = '/signup/email';
   static const signUpPassword = '/signup/password';
   static const categoriesPreferences = '/categories/preferences';
+  static const settings = '/settings';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -82,6 +84,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.categoriesPreferences,
         builder: (context, state) => const CategoriesPreferencesPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (context, state) => const SettingsPage(),
       ),
     ],
   );

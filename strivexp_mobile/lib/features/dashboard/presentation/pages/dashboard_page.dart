@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
 import '../../data/models/dashboard_models.dart';
+import '../../../../core/router/router.dart';
+import 'package:go_router/go_router.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -50,7 +52,7 @@ class DashboardPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // 2. Cabeçalho
-                  _buildHeader(dashboard),
+                  _buildHeader(context, dashboard),
 
                   const SizedBox(height: 24),
 
@@ -76,7 +78,7 @@ class DashboardPage extends ConsumerWidget {
   }
 
   // 2. Cabeçalho
-  Widget _buildHeader(DashboardModel dashboard) {
+  Widget _buildHeader(BuildContext context, DashboardModel dashboard) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -112,7 +114,9 @@ class DashboardPage extends ConsumerWidget {
 
         // 2.3 Settings
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            context.push(AppRoutes.settings);
+          },
           icon: const Icon(Icons.settings, color: Colors.grey),
         ),
       ],
