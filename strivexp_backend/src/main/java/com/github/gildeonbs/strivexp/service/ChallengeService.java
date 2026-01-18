@@ -13,10 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,8 +24,7 @@ public class ChallengeService {
     private final ChallengeRepository challengeRepository;
     private final UserChallengeRepository userChallengeRepository;
     private final UserRepository userRepository;
-
-    // Inject UserCategoryRepository for filtering
+    private final UserSettingsRepository userSettingsRepository;
     private final UserCategoryRepository userCategoryRepository;
 
     private final XpService xpService;
@@ -44,11 +40,9 @@ public class ChallengeService {
         List<UserChallenge> existing = userChallengeRepository.findByUserIdAndAssignedDate(userId, today);
 
         if (!existing.isEmpty()) {
-
             return existing.stream().map(this::mapToDto).collect(Collectors.toList());
         }
 
-        // --- NEW LOGIC START ---
         // 1. Get user's preferred categories
         List<UUID> preferredCategoryIds = userCategoryRepository.findCategoryIdsByUserId(userId);
 
@@ -62,14 +56,17 @@ public class ChallengeService {
                     ChallengeRecurrence.DAILY, preferredCategoryIds
             );
         }
-        // --- NEW LOGIC END ---
 
-        // Limit to 1 challenges (or user setting limit)
-        // Shuffling to ensure randomness
-        // Collections.shuffle(dailyChallenges);
-        // List<Challenge> selected = dailyChallenges.stream().limit(1).toList();
+        // Shuffle for randomness
+        Collections.shuffle(dailyChallenges);
+
+        // Get limit from user settings, with a fallback
+        UserSettings settings = userSettingsRepository.findByUserId(userId);
+        Short userLimit = settings.getDailyChallengeLimit();
+        int limit = (userLimit != null && userLimit > 0) ? userLimit : 1; // Default to 1 if not set
+
         List<UserChallenge> newAssignments = dailyChallenges.stream()
-                .limit(1)
+                .limit(limit)
                 .map(challenge -> UserChallenge.builder()
                         .user(user)
                         .challenge(challenge)
@@ -86,7 +83,8 @@ public class ChallengeService {
     }
 
     @Transactional
-    public UserChallengeDto completeChallenge(UUID userChallengeId, CompleteChallengeRequest request) {
+    // public UserChallengeDto completeChallenge(UUID userChallengeId, CompleteChallengeRequest request) { // Request for "note"
+    public UserChallengeDto completeChallenge(UUID userChallengeId) {
         UserChallenge assignment = userChallengeRepository.findById(userChallengeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment not found with id: " + userChallengeId));
 
@@ -96,7 +94,7 @@ public class ChallengeService {
 
         assignment.setStatus(ChallengeStatus.COMPLETED);
         assignment.setCompletedAt(Instant.now());
-        assignment.setNote(request.note());
+        //assignment.setNote(request.note());
 
         int xpToAward = assignment.getChallenge().getXpReward();
         assignment.setXpAwarded(xpToAward);
@@ -119,7 +117,6 @@ public class ChallengeService {
     }
 
     // Skip & Replace Logic ---
-
     @Transactional
     public UserChallengeDto skipChallenge(UUID userChallengeId) {
         UserChallenge assignment = userChallengeRepository.findById(userChallengeId)
@@ -129,11 +126,22 @@ public class ChallengeService {
             throw new BadRequestException("Only assigned challenges can be skipped.");
         }
 
-        // 1. Mark as Skipped
+        // CHECK SKIP LIMIT
+        long skipsToday = userChallengeRepository.countByUserIdAndAssignedDateAndStatus(
+                assignment.getUser().getId(),
+                LocalDate.now(),
+                ChallengeStatus.SKIPPED
+        );
+
+        if (skipsToday >= 3) {
+            throw new BadRequestException("Oops! You've used all your skips for today! 🎮\nCome back tomorrow for fresh challenges! 🔄");
+        }
+
+        //Mark as Skipped
         assignment.setStatus(ChallengeStatus.SKIPPED);
         userChallengeRepository.save(assignment);
 
-        // 2. Try to find a replacement
+        //Try to find a replacement
         Optional<Challenge> replacement = findReplacementChallenge(assignment.getUser());
 
         if (replacement.isPresent()) {
@@ -197,7 +205,7 @@ public class ChallengeService {
         Challenge c = uc.getChallenge();
         ChallengeResponseDto cDto = new ChallengeResponseDto(
                 c.getId(), c.getTitle(), c.getDescription(), c.getXpReward(),
-                c.getCategory().getName(), c.getDifficulty()
+                c.getCategory().getName(), c.getCategory().getIcon(), c.getDifficulty()
         );
         return new UserChallengeDto(uc.getId(), cDto, uc.getAssignedDate(), uc.getStatus(), uc.getXpAwarded());
     }

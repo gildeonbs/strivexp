@@ -34,4 +34,8 @@ public interface UserChallengeRepository extends JpaRepository<UserChallenge, UU
             @Param("oldStatus") ChallengeStatus oldStatus,
             @Param("today") LocalDate today
     );
+
+    // Used for count skips for today
+    long countByUserIdAndAssignedDateAndStatus(UUID userId, LocalDate assignedDate, ChallengeStatus status);
+
 }

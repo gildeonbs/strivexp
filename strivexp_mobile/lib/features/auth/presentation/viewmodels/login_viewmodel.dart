@@ -5,7 +5,7 @@ import '../../../categories/presentation/viewmodels/categories_viewmodel.dart';
 import '../../../categories/domain/usecases/manage_categories_usecase.dart';
 
 // Enum para definir o destino
-enum LoginNavigationDestination { home, categoriesPreferences }
+enum LoginNavigationDestination { dashboard, categoriesPreferences }
 
 // Injeção do UseCase
 final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
@@ -60,7 +60,7 @@ class LoginViewModel extends StateNotifier<AsyncValue<LoginNavigationDestination
 
       if (hasPreferences) {
         // Usuário recorrente ou já configurado
-        state = const AsyncValue.data(LoginNavigationDestination.home);
+        state = const AsyncValue.data(LoginNavigationDestination.dashboard);
       } else {
         // Primeiro acesso ou nenhuma preferência salva
         state = const AsyncValue.data(LoginNavigationDestination.categoriesPreferences);

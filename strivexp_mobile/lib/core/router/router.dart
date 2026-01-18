@@ -11,6 +11,8 @@ import '../../features/auth/presentation/pages/name_page.dart';
 import '../../features/auth/presentation/pages/email_page.dart';
 import '../../features/auth/presentation/pages/password_page.dart';
 import '../../features/categories/presentation/pages/categories_preferences_page.dart';
+import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+
 
 
 // Rotas como constantes para evitar erros de digitação
@@ -19,7 +21,8 @@ class AppRoutes {
   static const welcome = '/welcome';
   static const login = '/login';
   static const signup = '/signup';
-  static const home = '/home';
+  //static const home = '/home';
+  static const dashboard = '/dashboard';
   static const forgotPassword = '/forgot-password';
   static const signUpBirthday = '/signup/birthday';
   static const signUpName = '/signup/name';
@@ -48,11 +51,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.forgotPassword,
         builder: (context, state) => const ForgotPasswordPage(),
       ),
+      // GoRoute(
+      //   path: AppRoutes.home,
+      //   builder: (context, state) => const Scaffold(
+      //     body: Center(child: Text('Home Page Placeholder')),
+      //   ),
+      // ),
       GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Home Page Placeholder')),
-        ),
+        path: AppRoutes.dashboard,
+        builder: (context, state) => const DashboardPage(),
       ),
       // Fluxo de Cadastro
       GoRoute(

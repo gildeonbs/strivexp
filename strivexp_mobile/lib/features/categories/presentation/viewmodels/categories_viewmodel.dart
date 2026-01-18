@@ -74,7 +74,7 @@ class CategoriesViewModel extends StateNotifier<AsyncValue<List<CategoryModel>>>
       // Erro: Guarda o erro, mas MANTÉM A LISTA VISÍVEL (copyWithPrevious)
       state = AsyncValue<List<CategoryModel>>.error(e, stack).copyWithPrevious(state);
       // Recarrega os dados para garantir consistência se necessário
-      // _loadCategories();
+      _loadCategories();
       return false;
     }
   }

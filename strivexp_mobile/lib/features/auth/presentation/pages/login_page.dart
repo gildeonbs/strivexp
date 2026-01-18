@@ -71,8 +71,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen(loginViewModelProvider, (previous, next) {
       next.when(
         data: (destination) {
-          if (destination == LoginNavigationDestination.home) {
-            context.go(AppRoutes.home);
+          if (destination == LoginNavigationDestination.dashboard) {
+            context.go(AppRoutes.dashboard);
           } else if (destination == LoginNavigationDestination.categoriesPreferences) {
             // Redireciona para a tela de seleção de categorias
             context.go(AppRoutes.categoriesPreferences);
