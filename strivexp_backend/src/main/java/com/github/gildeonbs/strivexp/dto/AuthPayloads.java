@@ -27,7 +27,10 @@ public class AuthPayloads {
         String refreshToken
     ) {}
 
-    // --- NEW DTOs for Password Reset ---
+    public record LogoutRequest(
+            String refreshToken,
+            String pushToken // If client sends this, it disables push for this device
+    ) {}
 
     public record PasswordResetRequest(
             String email

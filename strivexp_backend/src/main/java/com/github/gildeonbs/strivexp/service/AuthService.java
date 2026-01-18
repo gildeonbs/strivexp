@@ -32,6 +32,8 @@ public class AuthService {
     private final UserSettingsRepository userSettingsRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationRepository;
+    private final PushTokenRepository pushTokenRepository; // Added for logout cleanup
+
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -158,8 +160,29 @@ public class AuthService {
         emailVerificationRepository.delete(verificationToken);
     }
 
-    // --- HELPER METHODS ---
+    //--- 5. LOGOUT METHOD ---
+    @Transactional
+    public void logout(LogoutRequest request) {
+        // Revoke Refresh Token
+        if (request.refreshToken() != null) {
+            refreshTokenRepository.findByToken(request.refreshToken())
+                    .ifPresent(token -> {
+                        token.setRevoked(true);
+                        refreshTokenRepository.save(token);
+                    });
+        }
 
+        // Disable Push Token
+        if (request.pushToken() != null) {
+            pushTokenRepository.findByToken(request.pushToken())
+                    .ifPresent(token -> {
+                        token.setIsActive(false);
+                        pushTokenRepository.save(token);
+                    });
+        }
+    }
+
+    // --- Helpers ---
     private void createAndSendVerificationToken(User user) {
         // Generate secure random string
         byte[] bytes = new byte[32];
@@ -187,7 +210,7 @@ public class AuthService {
     }
 
     private String createRefreshToken(User user) {
-        // Revoke old tokens? (Optional: for strict single-session)
+        // Revoke old tokens? (for strict single-session)
         // refreshTokenRepository.deleteAll(refreshTokenRepository.findAllByUser(user));
 
         RefreshToken refreshToken = RefreshToken.builder()

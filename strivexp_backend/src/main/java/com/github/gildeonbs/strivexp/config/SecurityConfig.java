@@ -31,19 +31,26 @@ public class SecurityConfig {
                 // STATELESS session policy is crucial for JWT
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. PUBLIC ENDPOINTS
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/reset-password").permitAll()
+                        // PUBLIC AUTH ENDPOINTS (Specific Whitelist)
+                        .requestMatchers(
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/refresh",
+                                "/api/auth/verify-email",
+                                "/api/auth/password-reset/**"
+                        ).permitAll()
 
-                        // Swagger UI & API Docs (Permit-listing)
-                        //.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
+                        // DOCUMENTATION (Swagger)
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // 2. PROTECTED ENDPOINTS
+                        // SECURED ENDPOINTS
+                        .requestMatchers("/api/auth/logout").authenticated()
+
+                        // All other API requests need a token
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider)
