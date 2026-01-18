@@ -139,7 +139,7 @@ class CategoriesPreferencesPage extends ConsumerWidget {
 
                         // Só navega se retornou true
                         if (success && context.mounted) {
-                          context.go(AppRoutes.home);
+                          context.go(AppRoutes.dashboard);
                         }
                       },
                       style: FilledButton.styleFrom(
@@ -169,7 +169,7 @@ class CategoriesPreferencesPage extends ConsumerWidget {
                             .submitPreferences(isSelectAll: true);
 
                         if (success && context.mounted) {
-                          context.go(AppRoutes.home);
+                          context.go(AppRoutes.dashboard);
                         }
                       },
                       style: OutlinedButton.styleFrom(
