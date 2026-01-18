@@ -38,8 +38,6 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
-    // --- Email verification Endpoint ---
-
     @GetMapping("/verify-email")
     public ResponseEntity<String> verifyEmail(
             @RequestParam("id") UUID id,
@@ -50,7 +48,11 @@ public class AuthController {
         return ResponseEntity.ok("<h1>Email Verified Successfully!</h1><p>You can now return to the app and login.</p>");
     }
 
-    // --- Password Reset Endpoints ---
+    @PostMapping("/logout")
+    public ResponseEntity<GenericResponse> logout(@RequestBody LogoutRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok(new GenericResponse("Logged out successfully"));
+    }
 
     @PostMapping("/password-reset/request")
     public ResponseEntity<GenericResponse> requestPasswordReset(@RequestBody PasswordResetRequest request) {
