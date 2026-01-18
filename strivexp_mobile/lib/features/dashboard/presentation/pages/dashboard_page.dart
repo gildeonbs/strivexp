@@ -65,7 +65,7 @@ class DashboardPage extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // 5. Desafios Passados
-                  _buildPastChallengesSection(dashboard),
+                  _buildPastDailyChallengesSection(dashboard),
                 ],
               ),
             ),
@@ -442,19 +442,19 @@ class DashboardPage extends ConsumerWidget {
   }
 
   // 5. Desafios Passados
-  Widget _buildPastChallengesSection(DashboardModel dashboard) {
-    final pastChallenges = dashboard.dailyChallenges
+  Widget _buildPastDailyChallengesSection(DashboardModel dashboard) {
+    final pastDailyChallenges = dashboard.dailyChallenges
         .where((c) => c.statusEnum != ChallengeStatus.ASSIGNED)
         .toList();
 
-    if (pastChallenges.isEmpty) return const SizedBox.shrink();
+    if (pastDailyChallenges.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 5.1 Título
         const Text(
-          "Past Challenges",
+          "Daily Challenges",
           style: TextStyle(
             fontFamily: 'Nunito',
             fontSize: 18,
@@ -468,18 +468,18 @@ class DashboardPage extends ConsumerWidget {
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: pastChallenges.length,
+          itemCount: pastDailyChallenges.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
-            final item = pastChallenges[index];
-            return _buildPastChallengeCard(item);
+            final item = pastDailyChallenges[index];
+            return _buildPastDailyChallengeCard(item);
           },
         ),
       ],
     );
   }
 
-  Widget _buildPastChallengeCard(UserDailyChallengeModel item) {
+  Widget _buildPastDailyChallengeCard(UserDailyChallengeModel item) {
     Color iconBgColor;
     IconData iconData;
     Color borderColor;
