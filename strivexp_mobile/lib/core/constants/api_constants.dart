@@ -6,6 +6,7 @@ class ApiConstants {
   static const String loginEndpoint = '/api/auth/login';
   static const String passwordResetRequestEndpoint = '/api/auth/password-reset/request';
   static const String registerEndpoint = '/api/auth/register';
+  static const String logoutEndpoint = '/api/auth/logout';
 
   static const String categoriesEndpoint = '/api/categories';
   static const String categoriesPreferencesEndpoint = '/api/categories/preferences';

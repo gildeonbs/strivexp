@@ -14,9 +14,8 @@ class SplashPage extends ConsumerWidget {
     ref.listen(splashViewModelProvider, (previous, next) {
       next.when(
         data: (destination) {
-          if (destination == SplashDestination.home) {
-            //context.go(AppRoutes.home);
-            context.go(AppRoutes.welcome);
+          if (destination == SplashDestination.dashboard) {
+            context.go(AppRoutes.dashboard);
           } else {
             // Se não estiver logado, vai para a tela de Escolha (Welcome)
             context.go(AppRoutes.welcome);

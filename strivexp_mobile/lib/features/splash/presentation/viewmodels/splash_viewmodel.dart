@@ -9,7 +9,7 @@ final checkAuthStatusUseCaseProvider = Provider<CheckAuthStatusUseCase>((ref) {
 });
 
 // Enum para representar o destino da navegação
-enum SplashDestination { home, login }
+enum SplashDestination { dashboard, login }
 
 // Controller da Splash
 class SplashViewModel extends StateNotifier<AsyncValue<SplashDestination?>> {
@@ -33,7 +33,7 @@ class SplashViewModel extends StateNotifier<AsyncValue<SplashDestination?>> {
 
       // Define o próximo estado
       state = AsyncValue.data(
-        isLoggedIn ? SplashDestination.home : SplashDestination.login
+        isLoggedIn ? SplashDestination.dashboard : SplashDestination.login
       );
     } catch (e, stack) {
       // Em caso de erro crítico, mandamos para o login por segurança
