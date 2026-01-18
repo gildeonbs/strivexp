@@ -38,7 +38,7 @@ public class UserSettings {
 
     @Column(name = "daily_challenge_limit")
     @Builder.Default
-    private Short dailyChallengeLimit = 2;
+    private Short dailyChallengeLimit = 3;
 
     @Column(name = "vibration_enabled")
     @Builder.Default
