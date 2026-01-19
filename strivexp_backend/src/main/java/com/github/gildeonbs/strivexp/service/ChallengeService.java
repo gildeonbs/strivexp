@@ -207,6 +207,13 @@ public class ChallengeService {
                 c.getId(), c.getTitle(), c.getDescription(), c.getXpReward(),
                 c.getCategory().getName(), c.getCategory().getIcon(), c.getDifficulty()
         );
-        return new UserChallengeDto(uc.getId(), cDto, uc.getAssignedDate(), uc.getStatus(), uc.getXpAwarded());
+        return new UserChallengeDto(
+                uc.getId(),
+                cDto,
+                uc.getAssignedDate(),
+                uc.getStatus(),
+                uc.getXpAwarded(),
+                uc.getUpdatedAt()
+        );
     }
 }
