@@ -43,7 +43,7 @@ class _EmailPageState extends ConsumerState<EmailPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(err.toString().replaceAll('Exception: ', '')),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.red[300],
             ),
           );
         },

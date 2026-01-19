@@ -55,7 +55,7 @@ class _PasswordPageState extends ConsumerState<PasswordPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(err.toString().replaceAll('Exception: ', '')),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.red[300],
             ),
           );
         },
@@ -150,8 +150,8 @@ class _PasswordPageState extends ConsumerState<PasswordPage> {
                 ),
                 const SizedBox(height: 8),
                 _buildRuleText("At least 8 characters"),
-                _buildRuleText("A number (0-9)"),
-                _buildRuleText("An uppercase letter (A-Z)"),
+                _buildRuleText("One number (0-9)"),
+                _buildRuleText("One uppercase letter (A-Z)"),
             
                 const SizedBox(height: 40),
             
