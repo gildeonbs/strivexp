@@ -26,7 +26,7 @@ class CategoriesPreferencesPage extends ConsumerWidget {
           SnackBar(
             // Remove o prefixo "Exception: " para ficar mais limpo
             content: Text(next.error.toString().replaceAll('Exception: ', '')),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.red[300],
             behavior: SnackBarBehavior.floating,
           ),
         );

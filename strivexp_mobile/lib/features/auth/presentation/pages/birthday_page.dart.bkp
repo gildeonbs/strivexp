@@ -54,7 +54,7 @@ class _BirthdayPageState extends ConsumerState<BirthdayPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(err.toString().replaceAll('Exception: ', '')),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.red[300],
             ),
           );
         },
