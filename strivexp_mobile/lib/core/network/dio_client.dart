@@ -1,5 +1,3 @@
-// lib/core/network/dio_client.dart
-
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/api_constants.dart';
@@ -22,7 +20,8 @@ final dioProvider = Provider<Dio>((ref) {
   );
 
   // Adiciona o interceptor criado acima
-  dio.interceptors.add(AuthInterceptor(storageService));
+  // Passamos a instância do 'dio' para dentro do Interceptor
+  dio.interceptors.add(AuthInterceptor(storageService, dio));
 
   // Log para debug (opcional, ajuda a ver o que está trafegando)
   dio.interceptors.add(LogInterceptor(

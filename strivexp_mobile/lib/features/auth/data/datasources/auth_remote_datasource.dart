@@ -13,6 +13,7 @@ abstract class AuthRemoteDataSource {
   Future<AuthResponseModel> login(LoginRequestModel request);
   Future<ForgotPasswordResponseModel> requestPasswordReset(ForgotPasswordRequestModel request);
   Future<AuthResponseModel> register(RegisterRequestModel request);
+  Future<AuthResponseModel> refreshToken(String refreshToken);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -101,6 +102,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       // Erro genérico de conexão
       throw Exception('Connection error. Please check your internet.');
+    }
+  }
+
+  @override
+  Future<AuthResponseModel> refreshToken(String refreshToken) async {
+    try {
+      // Importante: Usamos uma instância nova de Dio ou removemos o interceptor
+      // para esta chamada para evitar loop infinito se este token também estiver inválido.
+      // Porém, como o endpoint de refresh geralmente é público ou usa apenas o body,
+      // vamos passar direto.
+
+      final response = await _dio.post(
+        ApiConstants.refreshEndpoint,
+        data: { 'refreshToken': refreshToken },
+        // Ignora o interceptor de Auth nesta chamada específica para evitar loops
+        options: Options(headers: {'No-Auth': 'true'}),
+      );
+
+      return AuthResponseModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception('Failed to refresh token');
     }
   }
 
