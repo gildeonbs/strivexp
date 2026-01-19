@@ -75,12 +75,15 @@ class UserDailyChallengeModel {
   final ChallengeDetailModel challenge;
   final String status; // String vinda da API
   final ChallengeStatus statusEnum; // Enum facilitador
+  final DateTime updatedAt;
 
   UserDailyChallengeModel({
     required this.id,
     required this.challenge,
     required this.status,
     required this.statusEnum,
+    required this.updatedAt,
+
   });
 
   factory UserDailyChallengeModel.fromJson(Map<String, dynamic> json) {
@@ -89,6 +92,9 @@ class UserDailyChallengeModel {
       challenge: ChallengeDetailModel.fromJson(json['challenge']),
       status: json['status'],
       statusEnum: ChallengeStatus.fromString(json['status']),
+      // Parse da String ISO 8601 para DateTime
+      // Fallback para 'now' caso venha nulo para evitar crash
+      updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
     );
   }
 }
