@@ -27,18 +27,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> login(String email, String password) async {
-    // 1. Cria o modelo de request
+    // Cria o modelo de request
     final request = LoginRequestModel(email: email, password: password);
 
-    // 2. Chama a API (DataSource)
+    // Chama a API (DataSource)
     final response = await _remoteDataSource.login(request);
 
-    // 3. Salva o Access Token seguro para chamadas futuras (Dio Interceptor)
+    // Salva o Access Token seguro para chamadas futuras (Dio Interceptor)
     await _storageService.saveToken(response.accessToken);
 
-    // TODO: Salvar Refresh Token para implementar renovação automática
-    //await _storageService.saveRefreshToken(response.refreshToken);
-
+    // Salva o Refresh Token para renovação automática
+    await _storageService.saveRefreshToken(response.refreshToken);
   }
 
   @override
@@ -56,6 +55,27 @@ class AuthRepositoryImpl implements AuthRepository {
     // DECISÃO DE ARQUITETURA:
     // Ao registar, geralmente já logamos o usuário, mas nesse caso não.
     // await _storageService.saveToken(response.accessToken); // <--- REMOVIDO
+  }
+
+  //@override
+  Future<String?> refreshToken() async {
+    try {
+      final currentRefreshToken = await _storageService.getRefreshToken();
+      if (currentRefreshToken == null) return null;
+
+      // Chama o DataSource para renovar
+      final response = await _remoteDataSource.refreshToken(currentRefreshToken);
+
+      // Salva os novos tokens
+      await _storageService.saveToken(response.accessToken);
+      await _storageService.saveRefreshToken(response.refreshToken);
+
+      return response.accessToken;
+    } catch (e) {
+      // Se falhar (refresh expirado), limpa tudo para forçar logout
+      await _storageService.deleteAll();
+      return null;
+    }
   }
 
 }
