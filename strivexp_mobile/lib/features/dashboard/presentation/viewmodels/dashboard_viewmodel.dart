@@ -50,9 +50,15 @@ class DashboardViewModel extends StateNotifier<AsyncValue<DashboardModel>> {
   Future<void> skipChallenge(String id) async {
     try {
       await _skipChallenge.call(id);
+
+      // Sucesso: Recarrega os dados para atualizar a lista
       await loadDashboard();
-    } catch (e) {
-      print("Error skipping: $e");
+
+    } catch (e, stack) {
+      // ERRO CRÍTICO AQUI:
+      // Se der erro (ex: limite atingido), salvamos o erro no estado
+      // MAS usamos copyWithPrevious para NÃO perder os dados atuais do dashboard (tela preta/branca).
+      state = AsyncValue<DashboardModel>.error(e, stack).copyWithPrevious(state);
     }
   }
 }

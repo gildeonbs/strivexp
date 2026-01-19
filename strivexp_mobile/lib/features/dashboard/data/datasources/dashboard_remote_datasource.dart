@@ -67,9 +67,11 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       await _dio.post(path);
 
     } on DioException catch (e) {
-      if (e.response != null) {
+      if (e.response != null && e.response?.data != null) {
         final data = e.response?.data;
         if (data is Map<String, dynamic>) {
+          // Captura a mensagem "Oops! You've used all your skips..."
+          // O Spring pode mandar em 'message' ou 'error' dependendo da config
           final message = data['message'] ?? data['error'] ?? 'Failed to skip challenge';
           throw Exception(message);
         }

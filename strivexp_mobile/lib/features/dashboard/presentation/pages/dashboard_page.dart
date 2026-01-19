@@ -18,10 +18,44 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // LISTENER DE ERROS (Snackbar)
+    // Monitora o estado para exibir erros via Snackbar sem reconstruir a tela inteira
+    ref.listen(dashboardViewModelProvider, (previous, next) {
+      // Se houver um erro e não estiver carregando (para evitar spam enquanto tenta reconectar)
+      if (next.hasError && !next.isLoading) {
+        // Limpa filas anteriores para exibir o erro atual imediatamente
+        ScaffoldMessenger.of(context).clearSnackBars();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            // Remove o prefixo "Exception: " e exibe a mensagem do backend
+            content: Text(
+              next.error.toString().replaceAll('Exception: ', ''),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
+            ),
+            backgroundColor: _alertOrange,
+            behavior: SnackBarBehavior.floating, // Flutuante
+            duration: const Duration(seconds: 4), // Dá tempo de ler a mensagem longa
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+          ),
+        );
+      }
+    });
+
     final state = ref.watch(dashboardViewModelProvider);
+
+    // Se houver dados (mesmo com erro ou loading), usamos eles.
+    final dashboard = state.valueOrNull;
 
     return Scaffold(
       backgroundColor: Colors.white,
+      
       // 6. Barra de Navegação Inferior
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
@@ -41,37 +75,77 @@ class DashboardPage extends ConsumerWidget {
         },
       ),
       body: SafeArea(
-        child: state.when(
-          loading: () => const Center(child: CircularProgressIndicator(color: _primaryGreen)),
-          error: (err, _) => Center(child: Text("Error: $err")),
-          data: (dashboard) => RefreshIndicator(
-            onRefresh: () => ref.read(dashboardViewModelProvider.notifier).loadDashboard(),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 2. Cabeçalho
-                  _buildHeader(context, dashboard),
+        child: Builder(
+          builder: (context) {
+            // CENÁRIO 1: TEMOS DADOS (Sucesso ou Estado Preservado durante Erro/Load)
+            if (dashboard != null) {
+              return RefreshIndicator(
+                color: _primaryGreen,
+                onRefresh: () => ref.read(dashboardViewModelProvider.notifier).loadDashboard(),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  // Physics para garantir que o scroll funcione sempre (necessário para refresh)
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // 2. Cabeçalho (Passando context para navegação)
+                      _buildHeader(context, dashboard),
 
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // 3. Saudação e Progresso
-                  _buildGreetingSection(dashboard),
+                      // 3. Saudação e Progresso
+                      _buildGreetingSection(dashboard),
 
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // 4. Cartão do Desafio Diário (ASSIGNED)
-                  _buildDailyChallengeSection(context, ref, dashboard),
+                      // 4. Cartão do Desafio Diário (ASSIGNED)
+                      _buildDailyChallengeSection(context, ref, dashboard),
 
-                  const SizedBox(height: 32),
+                      const SizedBox(height: 32),
 
-                  // 5. Desafios Passados
-                  _buildPastDailyChallengesSection(dashboard),
-                ],
-              ),
-            ),
-          ),
+                      // 5. Desafios Passados
+                      _buildPastDailyChallengesSection(dashboard),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            // CENÁRIO 2: SEM DADOS E CARREGANDO (Primeiro Load)
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator(color: _primaryGreen));
+            }
+
+            // CENÁRIO 3: SEM DADOS E COM ERRO (Erro no primeiro Load)
+            if (state.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Unable to load dashboard.\n${state.error.toString().replaceAll('Exception: ', '')}",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
+                      const SizedBox(height: 24),
+                      OutlinedButton(
+                        onPressed: () => ref.read(dashboardViewModelProvider.notifier).loadDashboard(),
+                        child: const Text("Try Again", style: TextStyle(color: _primaryGreen)),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            // Fallback
+            return const SizedBox.shrink();
+          },
         ),
       ),
     );
@@ -165,136 +239,6 @@ class DashboardPage extends ConsumerWidget {
       ],
     );
   }
-
-  // // 4. Cartão do Desafio Diário
-  // Widget _buildDailyChallengeSection(BuildContext context, WidgetRef ref, DashboardModel dashboard) {
-  //   // Filtra desafios ASSIGNED
-  //   final assignedChallenges = dashboard.dailyChallenges
-  //       .where((c) => c.statusEnum == ChallengeStatus.ASSIGNED)
-  //       .toList();
-  //
-  //   if (assignedChallenges.isEmpty) {
-  //     return Container(
-  //       padding: const EdgeInsets.all(24),
-  //       decoration: BoxDecoration(
-  //         color: _lightGreenBg,
-  //         borderRadius: BorderRadius.circular(16),
-  //       ),
-  //       child: const Center(
-  //         child: Text(
-  //           "All daily challenges completed!",
-  //           style: TextStyle(fontFamily: 'Nunito', color: _darkGreen, fontWeight: FontWeight.bold),
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //
-  //   final challengeItem = assignedChallenges.first;
-  //   final challenge = challengeItem.challenge;
-  //
-  //   return Container(
-  //     padding: const EdgeInsets.all(24),
-  //     decoration: BoxDecoration(
-  //       color: _lightGreenBg,
-  //       borderRadius: BorderRadius.circular(24),
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: Colors.black.withOpacity(0.05),
-  //           blurRadius: 10,
-  //           offset: const Offset(0, 4),
-  //         ),
-  //       ],
-  //     ),
-  //     child: Column(
-  //       children: [
-  //         const SizedBox(height: 12),
-  //
-  //         // 4.2 Título
-  //         Text(
-  //           challenge.title.toUpperCase(),
-  //           style: const TextStyle(
-  //             fontFamily: 'Nunito',
-  //             color: _darkGreen,
-  //             fontSize: 24,
-  //             fontWeight: FontWeight.bold,
-  //             //letterSpacing: 1.2,
-  //           ),
-  //         ),
-  //         const SizedBox(height: 20),
-  //
-  //         // 4.3 Descrição
-  //         Text(
-  //           challenge.description,
-  //           textAlign: TextAlign.center,
-  //           style: const TextStyle(
-  //             fontFamily: 'Nunito',
-  //             color: _darkGreen,
-  //             fontSize: 20,
-  //             fontWeight: FontWeight.bold,
-  //             height: 1.3,
-  //           ),
-  //         ),
-  //         const SizedBox(height: 32),
-  //
-  //         // 4.4 Botão COMPLETE
-  //         SizedBox(
-  //           width: double.infinity,
-  //           height: 56,
-  //           child: FilledButton(
-  //             onPressed: () {
-  //               ref.read(dashboardViewModelProvider.notifier).completeChallenge(challengeItem.id);
-  //             },
-  //             style: FilledButton.styleFrom(
-  //               backgroundColor: _darkGreen,
-  //               shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(30),
-  //               ),
-  //             ),
-  //             child: const Row(
-  //               mainAxisAlignment: MainAxisAlignment.center,
-  //               children: [
-  //                 Text(
-  //                   "COMPLETE CHALLENGE",
-  //                   style: TextStyle(
-  //                     fontFamily: 'Nunito',
-  //                     fontWeight: FontWeight.bold,
-  //                     fontSize: 16,
-  //                   ),
-  //                 ),
-  //                 //SizedBox(width: 8),
-  //                 // Ícone decorativo (linha gráfica fina)
-  //                 //Icon(Icons.arrow_forward, size: 16),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //
-  //         const SizedBox(height: 12),
-  //
-  //         // 4.5 Botão SKIP
-  //         Align(
-  //           alignment: Alignment.bottomRight,
-  //           child: InkWell(
-  //             onTap: () {
-  //               ref.read(dashboardViewModelProvider.notifier).skipChallenge(challengeItem.id);
-  //             },
-  //             child: const Padding(
-  //               padding: EdgeInsets.all(8.0),
-  //               child: Text(
-  //                 "Skip",
-  //                 style: TextStyle(
-  //                   fontFamily: 'Nunito',
-  //                   color: _primaryGreen,
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   // 4. Cartão do Desafio Diário (Modificado com ícone de fundo)
   Widget _buildDailyChallengeSection(BuildContext context, WidgetRef ref, DashboardModel dashboard) {
