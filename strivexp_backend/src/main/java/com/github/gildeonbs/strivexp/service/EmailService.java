@@ -1,29 +1,71 @@
 package com.github.gildeonbs.strivexp.service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
-import com.resend.services.emails.model.CreateEmailResponse;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.Message;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.UserCredentials;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Properties;
 
 @Service
 @Slf4j
 public class EmailService {
 
-    private final Resend resend;
+    @Value("${google.client.id}")
+    private String clientId;
 
-    @Value("${app.email.from}")
+    @Value("${google.client.secret}")
+    private String clientSecret;
+
+    @Value("${google.refresh.token}")
+    private String refreshToken;
+
+    @Value("${google.user.email}")
     private String fromEmail;
 
-    public EmailService(@Value("${resend.api.key}") String apiKey) {
-        this.resend = new Resend(apiKey);
+    private Gmail gmailService;
+
+    @PostConstruct
+    public void init() {
+        try {
+            // 1. Build Credentials using the Refresh Token
+            UserCredentials credentials = UserCredentials.newBuilder()
+                    .setClientId(clientId)
+                    .setClientSecret(clientSecret)
+                    .setRefreshToken(refreshToken)
+                    .build();
+
+            // 2. Initialize the Gmail Service once
+            this.gmailService = new Gmail.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    GsonFactory.getDefaultInstance(),
+                    new HttpCredentialsAdapter(credentials))
+                    .setApplicationName("StriveXP")
+                    .build();
+            
+            log.info("Gmail Service initialized successfully for {}", fromEmail);
+        } catch (GeneralSecurityException | IOException e) {
+            log.error("Failed to initialize Gmail Service", e);
+            throw new RuntimeException("Could not initialize Gmail Service", e);
+        }
     }
 
-    @Async
     public void sendVerificationEmail(String to, String verificationLink) {
+        String subject = "StriveXP: Verify your email";
         String htmlContent = """
             <html>
             <body>
@@ -35,11 +77,11 @@ public class EmailService {
             </html>
             """.formatted(verificationLink);
 
-        sendEmail(to, "StriveXP: Verify your email", htmlContent);
+        sendEmail(to, subject, htmlContent);
     }
 
-    @Async
     public void sendPasswordResetEmail(String to, String resetLink) {
+        String subject = "StriveXP: Reset Your Password";
         String htmlContent = """
             <html>
             <body>
@@ -52,22 +94,36 @@ public class EmailService {
             </html>
             """.formatted(resetLink);
 
-        sendEmail(to, "StriveXP: Reset Your Password", htmlContent);
+        sendEmail(to, subject, htmlContent);
     }
 
-    private void sendEmail(String to, String subject, String htmlContent) {
+    private void sendEmail(String toEmail, String subject, String bodyText) {
         try {
-            CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from(fromEmail)
-                    .to(to)
-                    .subject(subject)
-                    .html(htmlContent)
-                    .build();
+            // 3. Create the Email Content (MIME)
+            Properties props = new Properties();
+            Session session = Session.getDefaultInstance(props, null);
+            MimeMessage email = new MimeMessage(session);
+            
+            email.setFrom(new InternetAddress(fromEmail));
+            email.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(toEmail));
+            email.setSubject(subject);
+            email.setContent(bodyText, "text/html; charset=utf-8"); // Changed to setContent for HTML support
 
-            CreateEmailResponse data = resend.emails().send(params);
-            log.info("Email sent to {} via Resend. ID: {}", to, data.getId());
-        } catch (ResendException e) {
-            log.error("Failed to send email via Resend to {}", to, e);
+            // 4. Encode and Send
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            email.writeTo(buffer);
+            byte[] bytes = buffer.toByteArray();
+            String encodedEmail = Base64.encodeBase64URLSafeString(bytes);
+
+            Message message = new Message();
+            message.setRaw(encodedEmail);
+
+            gmailService.users().messages().send("me", message).execute();
+            log.info("Email sent successfully to {}", toEmail);
+            
+        } catch (MessagingException | IOException e) {
+            log.error("Failed to send email to {} via Gmail API", toEmail, e);
+            // Consider rethrowing or handling gracefully depending on requirements
         }
     }
 }
