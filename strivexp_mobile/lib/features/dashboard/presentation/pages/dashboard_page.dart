@@ -395,6 +395,8 @@ class DashboardPage extends ConsumerWidget {
         .where((c) => c.statusEnum != ChallengeStatus.ASSIGNED)
         .toList();
 
+    pastDailyChallenges.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
     if (pastDailyChallenges.isEmpty) return const SizedBox.shrink();
 
     return Column(
