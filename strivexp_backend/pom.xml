@@ -55,11 +55,45 @@
         </dependency>
         -->
 
-        <!-- Resend SDK -->
-        <dependency>
+        <!-- Resend SDK        <dependency>
             <groupId>com.resend</groupId>
             <artifactId>resend-java</artifactId>
             <version>3.1.0</version>
+        </dependency>
+        -->
+
+        <!-- Google API Client -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
+        <!-- Gmail API Service -->
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-gmail</artifactId>
+            <version>v1-rev20220404-1.32.1</version>
+        </dependency>
+
+        <!-- Google OAuth Client -->
+        <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
+            <version>1.19.0</version>
+        </dependency>
+
+        <!-- Java Mail (for MimeMessage) -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
         </dependency>
 
 		<!-- Swagger / OpenAPI -->
