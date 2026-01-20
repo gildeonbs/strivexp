@@ -48,10 +48,18 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-        <!-- Add this for SendGrid/SMTP -->
+        <!-- SendGrid/SMTP
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        -->
+
+        <!-- Resend SDK -->
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
 		<!-- Swagger / OpenAPI -->
