@@ -41,6 +41,20 @@ public class EmailService {
 
     @PostConstruct
     public void init() {
+        // Validate credentials before attempting to build
+        if (clientId == null || clientId.isEmpty() || clientId.contains("${")) {
+            log.error("Google Client ID is missing or invalid. Check application.properties.");
+            return; // Skip initialization to avoid crash, but email won't work
+        }
+        if (clientSecret == null || clientSecret.isEmpty() || clientSecret.contains("${")) {
+            log.error("Google Client Secret is missing.");
+            return;
+        }
+        if (refreshToken == null || refreshToken.isEmpty() || refreshToken.contains("${")) {
+            log.error("Google Refresh Token is missing.");
+            return;
+        }
+
         try {
             // 1. Build Credentials using the Refresh Token
             UserCredentials credentials = UserCredentials.newBuilder()
@@ -56,15 +70,20 @@ public class EmailService {
                     new HttpCredentialsAdapter(credentials))
                     .setApplicationName("StriveXP")
                     .build();
-            
+
             log.info("Gmail Service initialized successfully for {}", fromEmail);
         } catch (GeneralSecurityException | IOException e) {
             log.error("Failed to initialize Gmail Service", e);
-            throw new RuntimeException("Could not initialize Gmail Service", e);
+            // We do NOT throw RuntimeException here to prevent app crash on startup
+            // if email config is bad.
         }
     }
 
     public void sendVerificationEmail(String to, String verificationLink) {
+        if (gmailService == null) {
+            log.error("Cannot send email: Gmail Service not initialized.");
+            return;
+        }
         String subject = "StriveXP: Verify your email";
         String htmlContent = """
             <html>
@@ -81,6 +100,10 @@ public class EmailService {
     }
 
     public void sendPasswordResetEmail(String to, String resetLink) {
+        if (gmailService == null) {
+            log.error("Cannot send email: Gmail Service not initialized.");
+            return;
+        }
         String subject = "StriveXP: Reset Your Password";
         String htmlContent = """
             <html>
@@ -103,11 +126,11 @@ public class EmailService {
             Properties props = new Properties();
             Session session = Session.getDefaultInstance(props, null);
             MimeMessage email = new MimeMessage(session);
-            
+
             email.setFrom(new InternetAddress(fromEmail));
             email.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(toEmail));
             email.setSubject(subject);
-            email.setContent(bodyText, "text/html; charset=utf-8"); // Changed to setContent for HTML support
+            email.setContent(bodyText, "text/html; charset=utf-8");
 
             // 4. Encode and Send
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -120,10 +143,9 @@ public class EmailService {
 
             gmailService.users().messages().send("me", message).execute();
             log.info("Email sent successfully to {}", toEmail);
-            
+
         } catch (MessagingException | IOException e) {
             log.error("Failed to send email to {} via Gmail API", toEmail, e);
-            // Consider rethrowing or handling gracefully depending on requirements
         }
     }
 }
