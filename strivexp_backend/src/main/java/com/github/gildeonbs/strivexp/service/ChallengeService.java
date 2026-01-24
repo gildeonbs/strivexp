@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -198,7 +199,10 @@ public class ChallengeService {
         }
 
         // E. Pick a random one
-        return Optional.of(available.get(new Random().nextInt(available.size())));
+        //return Optional.of(available.get(new Random().nextInt(available.size())));
+        return Optional.of(
+                available.get(ThreadLocalRandom.current().nextInt(available.size()))
+        );
     }
 
     private UserChallengeDto mapToDto(UserChallenge uc) {
