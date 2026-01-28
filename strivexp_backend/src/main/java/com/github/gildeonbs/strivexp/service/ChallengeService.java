@@ -135,7 +135,7 @@ public class ChallengeService {
         );
 
         if (skipsToday >= 3) {
-            throw new BadRequestException("Oops! You've used all your skips for today! 🎮\nCome back tomorrow for fresh challenges! 🔄");
+            throw new BadRequestException("“No skips left today!\nNew challenges unlock tomorrow.");
         }
 
         //Mark as Skipped
