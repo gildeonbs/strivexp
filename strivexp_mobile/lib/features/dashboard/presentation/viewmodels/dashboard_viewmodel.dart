@@ -4,9 +4,17 @@ import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../domain/usecases/dashboard_usecases.dart';
 
 // Providers dos UseCases
-final getDashboardUseCaseProvider = Provider((ref) => GetDashboardUseCase(ref.read(dashboardRepositoryProvider)));
-final completeChallengeUseCaseProvider = Provider((ref) => CompleteChallengeUseCase(ref.read(dashboardRepositoryProvider)));
-final skipChallengeUseCaseProvider = Provider((ref) => SkipChallengeUseCase(ref.read(dashboardRepositoryProvider)));
+final getDashboardUseCaseProvider = Provider.autoDispose((ref) => GetDashboardUseCase(ref.read(dashboardRepositoryProvider)));
+final completeChallengeUseCaseProvider = Provider.autoDispose((ref) => CompleteChallengeUseCase(ref.read(dashboardRepositoryProvider)));
+final skipChallengeUseCaseProvider = Provider.autoDispose((ref) => SkipChallengeUseCase(ref.read(dashboardRepositoryProvider)));
+
+final dashboardViewModelProvider = StateNotifierProvider.autoDispose<DashboardViewModel, AsyncValue<DashboardModel>>((ref) {
+  return DashboardViewModel(
+    ref.read(getDashboardUseCaseProvider),
+    ref.read(completeChallengeUseCaseProvider),
+    ref.read(skipChallengeUseCaseProvider),
+  );
+});
 
 // ViewModel
 class DashboardViewModel extends StateNotifier<AsyncValue<DashboardModel>> {
@@ -63,10 +71,10 @@ class DashboardViewModel extends StateNotifier<AsyncValue<DashboardModel>> {
   }
 }
 
-final dashboardViewModelProvider = StateNotifierProvider<DashboardViewModel, AsyncValue<DashboardModel>>((ref) {
-  return DashboardViewModel(
-    ref.read(getDashboardUseCaseProvider),
-    ref.read(completeChallengeUseCaseProvider),
-    ref.read(skipChallengeUseCaseProvider),
-  );
-});
+// final dashboardViewModelProvider = StateNotifierProvider<DashboardViewModel, AsyncValue<DashboardModel>>((ref) {
+//   return DashboardViewModel(
+//     ref.read(getDashboardUseCaseProvider),
+//     ref.read(completeChallengeUseCaseProvider),
+//     ref.read(skipChallengeUseCaseProvider),
+//   );
+// });

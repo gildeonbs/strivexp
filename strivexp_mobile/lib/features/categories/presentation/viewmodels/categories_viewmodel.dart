@@ -4,8 +4,13 @@ import '../../data/repositories/categories_repository_impl.dart';
 import '../../domain/usecases/manage_categories_usecase.dart';
 
 // UseCase Provider
-final manageCategoriesUseCaseProvider = Provider<ManageCategoriesUseCase>((ref) {
+final manageCategoriesUseCaseProvider = Provider.autoDispose<ManageCategoriesUseCase>((ref) {
   return ManageCategoriesUseCase(ref.read(categoriesRepositoryProvider));
+});
+
+final categoriesViewModelProvider =
+StateNotifierProvider.autoDispose<CategoriesViewModel, AsyncValue<List<CategoryModel>>>((ref) {
+  return CategoriesViewModel(ref.read(manageCategoriesUseCaseProvider));
 });
 
 // ViewModel State: Usamos AsyncValue para gerenciar Loading/Error/Data
@@ -80,8 +85,8 @@ class CategoriesViewModel extends StateNotifier<AsyncValue<List<CategoryModel>>>
   }
 }
 
-final categoriesViewModelProvider = 
-    StateNotifierProvider<CategoriesViewModel, AsyncValue<List<CategoryModel>>>((ref) {
-  return CategoriesViewModel(ref.read(manageCategoriesUseCaseProvider));
-});
+// final categoriesViewModelProvider =
+//     StateNotifierProvider<CategoriesViewModel, AsyncValue<List<CategoryModel>>>((ref) {
+//   return CategoriesViewModel(ref.read(manageCategoriesUseCaseProvider));
+// });
 
