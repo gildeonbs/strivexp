@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
@@ -49,7 +50,7 @@ public class XpService {
                 .referenceId(referenceId)
                 .note(note)
                 .build();
-        
+
         xpEventRepository.save(event);
         log.info("Awarded {} XP to user {}", amount, user.getId());
 
@@ -74,23 +75,38 @@ public class XpService {
 
     private UserProgressDto calculateProgress(long totalXp, UserStreak streak) {
         int currentLevel = calculateLevel(totalXp);
-        
+
         long xpForNextLevelTotal = (long) currentLevel * BASE_XP_PER_LEVEL;
         long xpForCurrentLevelTotal = (long) (currentLevel - 1) * BASE_XP_PER_LEVEL;
 
         long xpInCurrentLevel = totalXp - xpForCurrentLevelTotal;
-        long xpNeededForLevelUp = xpForNextLevelTotal - xpForCurrentLevelTotal; 
+        long xpNeededForLevelUp = xpForNextLevelTotal - xpForCurrentLevelTotal;
 
         double percentage = (double) xpInCurrentLevel / xpNeededForLevelUp;
 
+        // --- VISUAL FIX FOR STREAK ---
+        // Ideally, if the last completed date is older than Yesterday, the streak is visually 0.
+        // We calculate this "On Read" so we don't have to write to the DB every time.
+        int displayStreak = streak.getCurrentStreak();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate today = LocalDate.now();
+
+        if (streak.getLastCompletedDate() != null) {
+            // If last completion was NOT today AND NOT yesterday, the streak is broken.
+            boolean isBroken = streak.getLastCompletedDate().isBefore(yesterday);
+            if (isBroken) {
+                displayStreak = 0;
+            }
+        }
+
         return new UserProgressDto(
-            currentLevel,
-            totalXp,
-            xpForNextLevelTotal, 
-            xpInCurrentLevel,    
-            percentage,
-            streak.getCurrentStreak(), // Mapped from Streak Entity
-            streak.getLongestStreak()
+                currentLevel,
+                totalXp,
+                xpForNextLevelTotal,
+                xpInCurrentLevel,
+                percentage,
+                displayStreak, // Send the calculated visual streak
+                streak.getLongestStreak()
         );
     }
 }
